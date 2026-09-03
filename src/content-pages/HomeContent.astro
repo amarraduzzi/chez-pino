@@ -117,15 +117,6 @@ const path = localizedPath('/', lang);
         <Button href={reserveCta.href} variant="cta">{reserveCta.label}</Button>
         <Button href={localizedPath('/carte', lang)} variant="outline">{t(common.voirLaCarte, lang)}</Button>
       </div>
-      {siteConfig.social.googleRating && (
-        <p class="mt-6 flex items-center gap-2 text-xs font-bold" style="color: var(--color-primary)">
-          <span style="letter-spacing: 1px">★★★★☆</span>
-          <span style="color: var(--color-text-muted)">
-            {siteConfig.social.googleRating}/5
-            {siteConfig.social.googleReviewCount && ` · ${siteConfig.social.googleReviewCount} ${t(common.avisGoogle, lang)}`}
-          </span>
-        </p>
-      )}
     </div>
   </section>
 
