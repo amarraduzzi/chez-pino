@@ -53,6 +53,13 @@ const copy = {
   },
   highlightsKicker: { fr: 'À la carte', en: 'On the menu', ar: 'من القائمة' },
   highlightsTitle: { fr: 'Quelques signatures de la maison', en: 'A few house signatures', ar: 'بعض أطباقنا المميزة' },
+  galleryKicker: { fr: 'Dans l\'assiette', en: 'On the plate', ar: 'في الطبق' },
+  galleryTitle: { fr: 'Un aperçu de nos assiettes', en: 'A taste of our kitchen', ar: 'لمحة عن أطباقنا' },
+  gallerySubtitle: {
+    fr: 'Quelques assiettes servies récemment en salle — pizzas, pâtes et desserts maison.',
+    en: 'A few plates recently served in the dining room — pizza, pasta and homemade desserts.',
+    ar: 'بعض الأطباق التي قُدّمت مؤخرًا في الصالة — بيتزا وباستا وحلويات منزلية.',
+  },
   ratingLine: { fr: 'sur Google', en: 'on Google', ar: 'على Google' },
   ctaTitle: { fr: 'Une table vous attend', en: 'A table awaits you', ar: 'طاولة بانتظاركم' },
   ctaBody: {
@@ -67,6 +74,18 @@ const copy = {
 const highlights = menuCategories
   .filter((c) => c.id !== 'dessert')
   .map((c) => ({ category: c, item: c.items[Math.min(2, c.items.length - 1)] }));
+
+// A handful of real, in-house dish photos (not stock/AI imagery) for a
+// "what actually comes out of the kitchen" gallery. Filenames live in
+// public/dishes/.
+const galleryPhotos = [
+  { src: '/dishes/steak.jpg', caption: 'Filet de Bœuf grillé' },
+  { src: '/dishes/pasta.jpg', caption: 'Tagliatelle Frutti di Mare' },
+  { src: '/dishes/spread.jpg', caption: 'Pizza, salade & pâtes' },
+  { src: '/dishes/fondant.jpg', caption: 'Fondant au Chocolat' },
+  { src: '/dishes/pizza-branded.jpg', caption: 'Pizza Tonno' },
+  { src: '/dishes/pizza-closeup.jpg', caption: 'Pizza Tonno, gros plan' },
+];
 
 const path = localizedPath('/', lang);
 ---
@@ -154,6 +173,38 @@ const path = localizedPath('/', lang);
       </div>
     </section>
   </div>
+
+  <!-- Gallery — real, in-house dish photography (not stock or AI images) -->
+  <section class="relative max-w-7xl mx-auto px-5 sm:px-8 py-14 sm:py-20 overflow-hidden">
+    <div class="section-glow" style="width: 380px; height: 380px; background: var(--color-primary); opacity: 0.05; left: -140px; bottom: -120px;"></div>
+    <div class="relative mb-10 max-w-2xl" data-reveal>
+      <span class="block text-[10px] font-bold uppercase tracking-[0.25em] mb-2" style="color: var(--color-primary)">{t(copy.galleryKicker, lang)}</span>
+      <h2 class="font-display text-3xl sm:text-4xl font-semibold mb-3" style="color: var(--color-text-primary)">{t(copy.galleryTitle, lang)}</h2>
+      <p class="text-sm sm:text-base" style="color: var(--color-text-muted)">{t(copy.gallerySubtitle, lang)}</p>
+    </div>
+    <div class="relative grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+      {galleryPhotos.map((photo, i) => (
+        <div
+          class="photo-frame relative rounded-2xl overflow-hidden aspect-[4/5]"
+          style={`transition-delay: ${(i % 3) * 80}ms`}
+          data-reveal
+        >
+          <img
+            src={photo.src}
+            alt={photo.caption}
+            loading="lazy"
+            class="w-full h-full object-cover"
+          />
+          <div
+            class="absolute inset-x-0 bottom-0 px-3 sm:px-4 py-3 sm:py-4"
+            style="background: linear-gradient(0deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 70%)"
+          >
+            <span class="text-[11px] sm:text-xs font-bold" style="color: var(--color-text-primary)">{photo.caption}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
 
   <!-- CTA -->
   <section class="relative overflow-hidden">
