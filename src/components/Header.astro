@@ -1,9 +1,6 @@
 ---
-// Transparent at the top of the page, gains a blurred dark surface + a
-// thin neon-yellow scroll-progress hairline once scrolled. No client logo
-// photography exists yet (only the one storefront night shot) — this uses
-// a typographic mark instead of an image, per the reference architecture's
-// own fallback rule for clients without clean logo photography.
+// Uses the real Chez Pino logo (yellow mark on transparent background,
+// public/brand/logo-pino.png) instead of the earlier typographic fallback.
 import { siteConfig } from '../config/site.config';
 import { getReserveCtaLabel } from '../lib/nav';
 import { LANGUAGES, LANGUAGE_LABEL, LANGUAGE_NATIVE_NAME, localizedPath, arrow, t, type Language } from '../i18n/languages';
@@ -33,9 +30,7 @@ const langLinks = LANGUAGES.map((l) => ({ lang: l, href: localizedPath(currentPa
 <header id="site-header" class="sticky top-0 z-40 transition-all duration-300" data-scrolled="false">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-4">
     <a href={localizedPath('/', lang)} class="flex items-center gap-2 min-w-0 shrink">
-      <span class="font-display font-bold text-lg sm:text-xl tracking-wide truncate" style="color: var(--color-primary)">
-        {siteConfig.identity.name}
-      </span>
+      <img src="/brand/logo-pino.png" alt={siteConfig.identity.name} class="h-10 sm:h-12 w-auto" />
     </a>
 
     {!minimal && (
