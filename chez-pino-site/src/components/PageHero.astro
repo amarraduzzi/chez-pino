@@ -1,0 +1,39 @@
+---
+// Compact hero for interior pages. Accepts EITHER a real `image` (only the
+// storefront photo qualifies as real Chez Pino photography today) OR, when
+// no real photo is available, renders a styled gradient placeholder instead
+// of ever pointing an <img> at a file that doesn't exist.
+interface Props {
+  kicker: string;
+  title: string;
+  subtitle?: string;
+  image?: string;
+  alt?: string;
+}
+const { kicker, title, subtitle, image, alt = '' } = Astro.props;
+---
+<section class="relative h-[42vh] min-h-[320px] sm:h-[48vh] sm:min-h-[380px] flex items-end overflow-hidden">
+  {image ? (
+    <img src={image} alt={alt} class="absolute inset-0 w-full h-full object-cover" />
+  ) : (
+    <div class="photo-placeholder absolute inset-0"></div>
+  )}
+  <div
+    class="absolute inset-0"
+    style="background: linear-gradient(0deg, var(--color-background) 10%, rgba(11,11,12,0.55) 60%, rgba(11,11,12,0.75) 100%)"
+  ></div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 pb-10 sm:pb-14 w-full">
+    <span class="block text-[10px] font-bold uppercase tracking-[0.25em] mb-2" style="color: var(--color-primary)">
+      {kicker}
+    </span>
+    <h1 class="font-display text-3xl sm:text-5xl font-semibold" style="color: var(--color-text-primary)">
+      {title}
+    </h1>
+    {subtitle && (
+      <p class="mt-3 max-w-xl text-sm sm:text-base" style="color: var(--color-text-muted)">
+        {subtitle}
+      </p>
+    )}
+  </div>
+</section>

@@ -1,0 +1,101 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Button from '../components/Button.astro';
+import PageHero from '../components/PageHero.astro';
+import OpenStatusBadge from '../components/OpenStatusBadge.astro';
+import { siteConfig } from '../config/site.config';
+import { getReserveCtaLabel } from '../lib/nav';
+import { t, localizedPath, type Language } from '../i18n/languages';
+import { common, place } from '../i18n/ui';
+
+interface Props {
+  lang?: Language;
+}
+const { lang = 'fr' } = Astro.props;
+
+const { name } = siteConfig.identity;
+const primaryKeyword = t(siteConfig.identity.primaryKeyword, lang);
+const city = t(place.city, lang);
+const reserveCta = getReserveCtaLabel(lang);
+const openingHours = t(siteConfig.contact.openingHours, lang);
+
+const copy = {
+  metaTitle: { fr: `Contact & horaires — ${primaryKeyword} à ${city} | ${name}`, en: `Contact & opening hours — ${primaryKeyword} in ${city} | ${name}`, ar: `اتصل بنا وساعات العمل — ${primaryKeyword} في ${city} | ${name}` },
+  metaDescription: {
+    fr: `Adresse, téléphone et horaires de ${name}, ${primaryKeyword} à ${city}. ${siteConfig.contact.address}.`,
+    en: `Address, phone and opening hours of ${name}, ${primaryKeyword} in ${city}. ${siteConfig.contact.address}.`,
+    ar: `العنوان والهاتف وساعات العمل لـ${name}, ${primaryKeyword} في ${city}. ${siteConfig.contact.address}.`,
+  },
+  heroTitle: { fr: 'Contact & horaires', en: 'Contact & opening hours', ar: 'اتصل بنا وساعات العمل' },
+  quoteQuestion: { fr: 'Une question, une envie de pizza ce soir ?', en: 'A question, or a craving for pizza tonight?', ar: 'لديكم سؤال، أم ترغبون في بيتزا هذا المساء؟' },
+  quoteLocation: {
+    fr: 'Vous nous trouverez dans le quartier Riyad Al Andalous, repérables à notre enseigne néon jaune.',
+    en: "You'll find us in the Riyad Al Andalous neighbourhood, easy to spot by our yellow neon sign.",
+    ar: 'ستجدوننا في حي رياض الأندلس، يسهل التعرف علينا بلافتتنا النيون الصفراء.',
+  },
+} satisfies Record<string, { fr: string; en: string; ar: string }>;
+
+const infoItems = [
+  { label: t(common.adresse, lang), value: siteConfig.contact.address, href: undefined, icon: 'M12 21s7-7.58 7-12A7 7 0 105 9c0 4.42 7 12 7 12z M12 11a2 2 0 100-4 2 2 0 000 4z' },
+  { label: t(common.telephone, lang), value: siteConfig.contact.phoneDisplay, href: siteConfig.contact.phoneHref, icon: 'M4 4h4l2 5-2.5 1.5a11 11 0 005 5L14 13l5 2v4a2 2 0 01-2 2A15 15 0 014 6a2 2 0 012-2z' },
+  { label: t(common.horaires, lang), value: openingHours, href: undefined, icon: 'M12 7v5l3 3 M21 12a9 9 0 11-18 0 9 9 0 0118 0z', isHours: true },
+];
+
+const path = localizedPath('/contact', lang);
+---
+<Layout title={t(copy.metaTitle, lang)} description={t(copy.metaDescription, lang)} path={path} lang={lang}>
+  <PageHero kicker={city} title={t(copy.heroTitle, lang)} image="/brand/storefront-hero.png" alt={name} />
+
+  <section class="max-w-5xl mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-6" data-reveal>
+    <p class="pull-quote max-w-2xl">{t(copy.quoteQuestion, lang)}</p>
+    <p class="mt-3 max-w-xl text-sm sm:text-base" style="color: var(--color-text-muted)">{t(copy.quoteLocation, lang)}</p>
+  </section>
+
+  <section class="max-w-5xl mx-auto px-5 sm:px-8 pt-4 pb-20 grid sm:grid-cols-2 gap-12 items-start">
+    <div>
+      <div class="space-y-5 text-sm sm:text-base" style="color: var(--color-text-primary)">
+        {infoItems.map((item, i) => (
+          <div class="flex items-start gap-3" data-reveal style={`transition-delay: ${i * 80}ms`}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.6" class="shrink-0 mt-0.5" style="color: var(--color-primary)">
+              <path d={item.icon} stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div>
+              <p class="font-bold text-xs uppercase tracking-wide" style="color: var(--color-text-muted)">{item.label}</p>
+              {item.href ? (
+                <a href={item.href} class="mt-1 inline-block hover:underline">{item.value}</a>
+              ) : (
+                <p class="mt-1">{item.value}</p>
+              )}
+              {item.isHours && (
+                <div class="mt-1.5">
+                  <OpenStatusBadge lang={lang} />
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="mt-8 flex flex-wrap gap-3">
+        <Button href={reserveCta.href} variant="cta">{reserveCta.label}</Button>
+        {siteConfig.contact.mapsUrl && <Button href={siteConfig.contact.mapsUrl} external variant="filled">{t(common.itineraire, lang)}</Button>}
+        {siteConfig.social.googleReviewsUrl && <Button href={siteConfig.social.googleReviewsUrl} external variant="outline">{t(common.avisGoogle, lang)}</Button>}
+      </div>
+    </div>
+
+    <div
+      class="rounded-2xl overflow-hidden aspect-[4/3]"
+      style="background-color: var(--color-surface-muted); border: 1px solid var(--color-border)"
+      data-reveal
+    >
+      <iframe
+        src={`https://www.google.com/maps?q=${encodeURIComponent(siteConfig.contact.address)}&output=embed`}
+        class="w-full h-full grayscale-[35%] contrast-[1.05]"
+        style="border: 0; min-height: 260px;"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        title={`${name}, ${siteConfig.contact.address}`}
+      ></iframe>
+    </div>
+  </section>
+</Layout>

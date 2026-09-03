@@ -1,0 +1,147 @@
+---
+// Table reservations, v1. There is no real booking backend for Chez Pino
+// yet (no Supabase project, no server) — see the TODO below and in
+// site.config.ts's `reservations` field. The form here builds a mailto:
+// draft addressed to the restaurant (the visitor's own email client opens
+// with the details pre-filled, so THEY send it — no data is transmitted or
+// stored by this static site) and the phone CTA stays the most prominent,
+// fastest option since that's genuinely how this restaurant takes bookings
+// today.
+//
+// TODO before going live: connect this form to a real backend (a small
+// serverless function, a Supabase project, or similar) so a reservation
+// request can be stored and staff notified automatically, instead of
+// relying on the visitor's own mail client.
+import Layout from '../layouts/Layout.astro';
+import Button from '../components/Button.astro';
+import PageHero from '../components/PageHero.astro';
+import { siteConfig } from '../config/site.config';
+import { t, localizedPath, type Language } from '../i18n/languages';
+import { place } from '../i18n/ui';
+
+interface Props {
+  lang?: Language;
+}
+const { lang = 'fr' } = Astro.props;
+
+const { name } = siteConfig.identity;
+const primaryKeyword = t(siteConfig.identity.primaryKeyword, lang);
+const city = t(place.city, lang);
+const path = localizedPath('/reservation', lang);
+
+const copy = {
+  metaTitle: { fr: `${primaryKeyword} à ${city} — Réserver une table | ${name}`, en: `${primaryKeyword} in ${city} — Book a table | ${name}`, ar: `${primaryKeyword} في ${city} — احجز طاولة | ${name}` },
+  metaDescription: {
+    fr: `Réservez votre table chez ${name}, ${primaryKeyword} à ${city}. Confirmation par téléphone.`,
+    en: `Reserve your table at ${name}, ${primaryKeyword} in ${city}. Confirmation by phone.`,
+    ar: `احجزوا طاولتكم في ${name}, ${primaryKeyword} في ${city}. التأكيد عبر الهاتف.`,
+  },
+  heroTitle: { fr: 'Réserver une table', en: 'Book a table', ar: 'احجز طاولة' },
+  heroSubtitle: {
+    fr: 'La manière la plus rapide de réserver reste l\'appel téléphonique. Vous pouvez aussi nous envoyer votre demande ci-dessous.',
+    en: 'The fastest way to book is still a phone call. You can also send us your request below.',
+    ar: 'أسرع طريقة للحجز تبقى الاتصال الهاتفي. يمكنكم أيضًا إرسال طلبكم أدناه.',
+  },
+  callTitle: { fr: 'Réservez par téléphone', en: 'Reserve by phone', ar: 'احجزوا عبر الهاتف' },
+  callBody: { fr: 'Notre équipe confirme votre table en direct.', en: 'Our team confirms your table live.', ar: 'يقوم فريقنا بتأكيد طاولتكم مباشرة.' },
+  orTitle: { fr: 'Ou envoyez votre demande', en: 'Or send your request', ar: 'أو أرسلوا طلبكم' },
+  formName: { fr: 'Nom complet', en: 'Full name', ar: 'الاسم الكامل' },
+  formPhone: { fr: 'Téléphone', en: 'Phone', ar: 'الهاتف' },
+  formDate: { fr: 'Date', en: 'Date', ar: 'التاريخ' },
+  formTime: { fr: 'Heure', en: 'Time', ar: 'الوقت' },
+  formPartySize: { fr: 'Nombre de personnes', en: 'Party size', ar: 'عدد الأشخاص' },
+  formNotes: { fr: 'Remarque (optionnel)', en: 'Note (optional)', ar: 'ملاحظة (اختياري)' },
+  formNotesPlaceholder: { fr: 'Occasion spéciale, allergie...', en: 'Special occasion, allergy...', ar: 'مناسبة خاصة، حساسية...' },
+  formSubmit: { fr: 'Préparer ma demande par e-mail', en: 'Prepare my request by e-mail', ar: 'تحضير طلبي عبر البريد الإلكتروني' },
+  formNote: {
+    fr: 'En cliquant, votre application e-mail s\'ouvre avec un message pré-rempli à nous envoyer. Aucune donnée n\'est enregistrée par ce site.',
+    en: 'Clicking this opens your e-mail app with a pre-filled message for you to send. No data is stored by this site.',
+    ar: 'عند النقر، سيفتح تطبيق البريد الإلكتروني لديكم برسالة معبأة مسبقًا لإرسالها. لا يتم تخزين أي بيانات من طرف هذا الموقع.',
+  },
+} satisfies Record<string, { fr: string; en: string; ar: string }>;
+---
+<Layout title={t(copy.metaTitle, lang)} description={t(copy.metaDescription, lang)} path={path} lang={lang}>
+  <PageHero kicker={city} title={t(copy.heroTitle, lang)} subtitle={t(copy.heroSubtitle, lang)} image="/brand/storefront-hero.png" alt={name} />
+
+  <section class="max-w-2xl mx-auto px-5 sm:px-8 py-14 sm:py-20">
+    <div
+      class="rounded-2xl p-7 sm:p-8 mb-10 text-center"
+      style="background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface)); border: 1px solid var(--color-border)"
+      data-reveal
+    >
+      <h2 class="font-display text-2xl font-semibold mb-2" style="color: var(--color-text-primary)">{t(copy.callTitle, lang)}</h2>
+      <p class="text-sm mb-5" style="color: var(--color-text-muted)">{t(copy.callBody, lang)}</p>
+      <Button href={siteConfig.contact.phoneHref} variant="filled">{siteConfig.contact.phoneDisplay}</Button>
+    </div>
+
+    <h2 class="font-display text-xl font-semibold mb-5" style="color: var(--color-text-primary)" data-reveal>{t(copy.orTitle, lang)}</h2>
+
+    <form id="reservation-form" class="space-y-4" data-reveal>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <label class="block text-sm">
+          <span class="block mb-1.5 font-semibold" style="color: var(--color-text-muted)">{t(copy.formName, lang)}</span>
+          <input name="fullName" type="text" required class="res-input" />
+        </label>
+        <label class="block text-sm">
+          <span class="block mb-1.5 font-semibold" style="color: var(--color-text-muted)">{t(copy.formPhone, lang)}</span>
+          <input name="phone" type="tel" required class="res-input" />
+        </label>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-4">
+        <label class="block text-sm">
+          <span class="block mb-1.5 font-semibold" style="color: var(--color-text-muted)">{t(copy.formDate, lang)}</span>
+          <input name="date" type="date" required class="res-input" />
+        </label>
+        <label class="block text-sm">
+          <span class="block mb-1.5 font-semibold" style="color: var(--color-text-muted)">{t(copy.formTime, lang)}</span>
+          <input name="time" type="time" required class="res-input" />
+        </label>
+        <label class="block text-sm">
+          <span class="block mb-1.5 font-semibold" style="color: var(--color-text-muted)">{t(copy.formPartySize, lang)}</span>
+          <input name="partySize" type="number" min="1" max="30" required class="res-input" />
+        </label>
+      </div>
+      <label class="block text-sm">
+        <span class="block mb-1.5 font-semibold" style="color: var(--color-text-muted)">{t(copy.formNotes, lang)}</span>
+        <textarea name="notes" rows="3" placeholder={t(copy.formNotesPlaceholder, lang)} class="res-input resize-none"></textarea>
+      </label>
+
+      <button type="submit" class="amp-btn-filled w-full rounded-lg px-6 py-3.5 text-sm font-bold" style="background-color: var(--color-primary); color: var(--color-background)">
+        {t(copy.formSubmit, lang)}
+      </button>
+      <p class="text-xs text-center" style="color: var(--color-text-muted)">{t(copy.formNote, lang)}</p>
+    </form>
+  </section>
+</Layout>
+
+<style>
+  .res-input {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border-radius: 0.6rem;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+  }
+  .res-input:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+  }
+</style>
+
+<script define:vars={{ phoneDisplay: siteConfig.contact.phoneDisplay, restaurantName: siteConfig.identity.name }}>
+  // TODO: replace this mailto: fallback with a real backend submission
+  // (see the file-top comment) before this goes live for real bookings.
+  document.addEventListener('astro:page-load', () => {
+    const form = document.getElementById('reservation-form');
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = new FormData(form);
+      const subject = encodeURIComponent(`Demande de réservation — ${restaurantName}`);
+      const body = encodeURIComponent(
+        `Nom: ${data.get('fullName')}\nTéléphone: ${data.get('phone')}\nDate: ${data.get('date')}\nHeure: ${data.get('time')}\nNombre de personnes: ${data.get('partySize')}\nRemarque: ${data.get('notes') || '-'}\n\n(Demande envoyée depuis le site web — merci de confirmer par téléphone au ${phoneDisplay} si vous n'avez pas de retour rapide.)`
+      );
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    });
+  });
+</script>

@@ -1,0 +1,171 @@
+---
+// Shared body for every /<lang>/ route — src/pages/index.astro (and its
+// ar/en siblings) just import this and pass `lang`.
+import Layout from '../layouts/Layout.astro';
+import Button from '../components/Button.astro';
+import Ornament from '../components/Ornament.astro';
+import OpenStatusBadge from '../components/OpenStatusBadge.astro';
+import { siteConfig } from '../config/site.config';
+import { getReserveCtaLabel } from '../lib/nav';
+import { menuCategories } from '../content/full-menu';
+import { t, localizedPath, arrow, type Language } from '../i18n/languages';
+import { common, place, nav as navUi } from '../i18n/ui';
+
+interface Props {
+  lang?: Language;
+}
+const { lang = 'fr' } = Astro.props;
+
+const { name } = siteConfig.identity;
+const primaryKeyword = t(siteConfig.identity.primaryKeyword, lang);
+const city = t(place.city, lang);
+const reserveCta = getReserveCtaLabel(lang);
+
+const copy = {
+  metaTitle: {
+    fr: `${name} — ${primaryKeyword} à ${city} : pizza, pasta & lounge`,
+    en: `${name} — ${primaryKeyword} in ${city}: pizza, pasta & lounge`,
+    ar: `${name} — ${primaryKeyword} في ${city}: بيتزا وباستا وأجواء لاونج`,
+  },
+  metaDescription: {
+    fr: `${name}, ${primaryKeyword} à ${city} : pizzas napolitaines, pâtes fraîches, burgers et une carte de boissons complète, dans une ambiance lounge noir et or.`,
+    en: `${name}, ${primaryKeyword} in ${city}: Neapolitan pizzas, fresh pasta, burgers and a full drinks menu, in a black-and-gold lounge atmosphere.`,
+    ar: `${name}, ${primaryKeyword} في ${city}: بيتزا نابولية، باستا طازجة، برغر وقائمة مشروبات كاملة، في أجواء لاونج بالأسود والذهبي.`,
+  },
+  heroKicker: { fr: `${primaryKeyword} · ${city}`, en: `${primaryKeyword} · ${city}`, ar: `${primaryKeyword} · ${city}` },
+  heroTitle: {
+    fr: 'Pizza, pasta et bonne humeur, sous les néons.',
+    en: 'Pizza, pasta and good energy, under the neon lights.',
+    ar: 'بيتزا وباستا وأجواء رائعة، تحت أضواء النيون.',
+  },
+  heroSubtitle: {
+    fr: `Une cuisine italienne généreuse et une carte de boissons sans fin, dans un décor noir et jaune qui ne passe pas inaperçu — au cœur de ${city}.`,
+    en: `Generous Italian cooking and an endless drinks list, in a black-and-yellow setting that's hard to miss — in the heart of ${city}.`,
+    ar: `مطبخ إيطالي غني وقائمة مشروبات لا تنتهي، في ديكور أسود وأصفر لا يمكن تفويته — في قلب ${city}.`,
+  },
+  heroAlt: { fr: `Devanture de ${name} illuminée en jaune, la nuit, à ${city}`, en: `${name}'s storefront lit up in yellow at night, in ${city}`, ar: `واجهة ${name} مضاءة باللون الأصفر ليلاً في ${city}` },
+  introKicker: { fr: 'Bienvenue', en: 'Welcome', ar: 'مرحبًا بكم' },
+  introTitle: { fr: `L'Italie, version ${city} by night`, en: `Italy, ${city}-by-night style`, ar: `إيطاليا، بأسلوب ${city} الليلي` },
+  introBody: {
+    fr: `${name} réunit une cuisine italienne soignée — pizzas à pâte reposée 48h, pâtes fraîches, viandes et poissons grillés — avec l'énergie d'un lounge : lumière tamisée, néon doré, et une carte de boissons qui va du café serré au cocktail signature.`,
+    en: `${name} brings together carefully made Italian food — 48-hour rested pizza dough, fresh pasta, grilled meat and fish — with lounge energy: dim lighting, gold neon, and a drinks list that runs from a short espresso to a signature cocktail.`,
+    ar: `يجمع ${name} بين مطبخ إيطالي متقن — عجينة بيتزا مخمرة 48 ساعة، باستا طازجة، لحوم وأسماك مشوية — وأجواء لاونج: إضاءة خافتة، نيون ذهبي، وقائمة مشروبات تمتد من إسبريسو قصير إلى كوكتيل مميز.`,
+  },
+  highlightsKicker: { fr: 'À la carte', en: 'On the menu', ar: 'من القائمة' },
+  highlightsTitle: { fr: 'Quelques signatures de la maison', en: 'A few house signatures', ar: 'بعض أطباقنا المميزة' },
+  ratingLine: { fr: 'sur Google', en: 'on Google', ar: 'على Google' },
+  ctaTitle: { fr: 'Une table vous attend', en: 'A table awaits you', ar: 'طاولة بانتظاركم' },
+  ctaBody: {
+    fr: 'Appelez-nous ou envoyez votre demande — notre équipe confirme chaque réservation par téléphone.',
+    en: 'Call us or send your request — our team confirms every reservation by phone.',
+    ar: 'اتصلوا بنا أو أرسلوا طلبكم — يقوم فريقنا بتأكيد كل حجز هاتفيًا.',
+  },
+} satisfies Record<string, { fr: string; en: string; ar: string }>;
+
+// One signature dish per food category, for a compact "highlights" grid —
+// the full carte lives on /carte.
+const highlights = menuCategories
+  .filter((c) => c.id !== 'dessert')
+  .map((c) => ({ category: c, item: c.items[Math.min(2, c.items.length - 1)] }));
+
+const path = localizedPath('/', lang);
+---
+<Layout
+  title={t(copy.metaTitle, lang)}
+  description={t(copy.metaDescription, lang)}
+  path={path}
+  lang={lang}
+>
+  <!-- The one authentic Chez Pino photo we have — the real storefront, at
+       night, black facade and glowing yellow sign. Used here at full hero
+       scale, deliberately not cropped or filtered into something else. -->
+  <section class="relative min-h-[560px] sm:h-[86vh] flex items-end overflow-hidden">
+    <div class="ken-burns absolute inset-0">
+      <img src="/brand/storefront-hero.png" alt={t(copy.heroAlt, lang)} class="absolute inset-0 w-full h-full object-cover" />
+    </div>
+    <div class="absolute inset-0" style="background: linear-gradient(0deg, var(--color-background) 6%, rgba(11,11,12,0.35) 45%, rgba(11,11,12,0.55) 100%)"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 pb-14 sm:pb-20 w-full">
+      <span class="block text-[11px] font-bold uppercase tracking-[0.3em] mb-4" style="color: var(--color-primary)">
+        {t(copy.heroKicker, lang)}
+      </span>
+      <h1 class="font-display text-4xl sm:text-6xl lg:text-7xl font-semibold max-w-3xl leading-[1.05]" style="color: var(--color-text-primary)">
+        {t(copy.heroTitle, lang)}
+      </h1>
+      <p class="mt-5 max-w-xl text-sm sm:text-base" style="color: var(--color-text-muted)">
+        {t(copy.heroSubtitle, lang)}
+      </p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <Button href={reserveCta.href} variant="cta">{reserveCta.label}</Button>
+        <Button href={localizedPath('/carte', lang)} variant="outline">{t(common.voirLaCarte, lang)}</Button>
+      </div>
+      {siteConfig.social.googleRating && (
+        <p class="mt-6 flex items-center gap-2 text-xs font-bold" style="color: var(--color-primary)">
+          <span style="letter-spacing: 1px">★★★★☆</span>
+          <span style="color: var(--color-text-muted)">
+            {siteConfig.social.googleRating}/5
+            {siteConfig.social.googleReviewCount && ` · ${siteConfig.social.googleReviewCount} ${t(common.avisGoogle, lang)}`}
+          </span>
+        </p>
+      )}
+    </div>
+  </section>
+
+  <!-- Intro -->
+  <section class="relative max-w-3xl mx-auto px-5 sm:px-8 pt-16 sm:pt-20 pb-12 overflow-hidden">
+    <div class="section-glow" style="width: 340px; height: 340px; background: var(--color-primary); opacity: 0.05; right: -120px; top: -80px;"></div>
+    <div class="relative" data-reveal>
+      <span class="block text-[10px] font-bold uppercase tracking-[0.25em] mb-2" style="color: var(--color-primary)">{t(copy.introKicker, lang)}</span>
+      <h2 class="font-display text-3xl sm:text-4xl font-semibold mb-4" style="color: var(--color-text-primary)">{t(copy.introTitle, lang)}</h2>
+      <p class="text-sm sm:text-base leading-relaxed" style="color: var(--color-text-muted)">{t(copy.introBody, lang)}</p>
+    </div>
+  </section>
+
+  <Ornament />
+
+  <!-- Highlights -->
+  <div class="section-tint">
+    <section class="max-w-7xl mx-auto px-5 sm:px-8 py-14 sm:py-20">
+      <div class="mb-10" data-reveal>
+        <span class="block text-[10px] font-bold uppercase tracking-[0.25em] mb-2" style="color: var(--color-primary)">{t(copy.highlightsKicker, lang)}</span>
+        <h2 class="font-display text-3xl sm:text-4xl font-semibold" style="color: var(--color-text-primary)">{t(copy.highlightsTitle, lang)}</h2>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {highlights.map(({ category, item }, i) => (
+          <div
+            class="card-lift rounded-2xl p-6"
+            style={`background-color: var(--color-surface-muted); border: 1px solid var(--color-border); transition-delay: ${(i % 3) * 80}ms`}
+            data-reveal
+          >
+            <span class="text-[10px] font-bold uppercase tracking-[0.2em]" style="color: var(--color-accent)">{t(category.label, lang)}</span>
+            <div class="mt-2 flex items-baseline justify-between gap-3">
+              <h3 class="menu-item-name font-display text-lg font-semibold" style="color: var(--color-text-primary)">{item.name}</h3>
+              <span class="menu-item-price text-sm font-bold shrink-0" style="color: var(--color-primary)">
+                {item.price === 'sur-demande' ? t(common.prixSurDemande, lang) : `${item.price} MAD`}
+              </span>
+            </div>
+            {item.description && (
+              <p class="mt-2 text-xs leading-relaxed" style="color: var(--color-text-muted)">{t(item.description, lang)}</p>
+            )}
+          </div>
+        ))}
+      </div>
+      <div class="mt-10 text-center">
+        <Button href={localizedPath('/menu', lang)} variant="outline">{t(navUi.menu, lang)} {arrow(lang)}</Button>
+      </div>
+    </section>
+  </div>
+
+  <!-- CTA -->
+  <section class="relative overflow-hidden">
+    <div class="section-glow" style="width: 420px; height: 420px; background: var(--color-primary); opacity: 0.08; left: 50%; top: -140px; transform: translateX(-50%);"></div>
+    <div class="relative max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-24 text-center" data-reveal>
+      <h2 class="font-display text-3xl sm:text-4xl font-semibold mb-3" style="color: var(--color-text-primary)">{t(copy.ctaTitle, lang)}</h2>
+      <p class="text-sm sm:text-base mb-8 max-w-lg mx-auto" style="color: var(--color-text-muted)">{t(copy.ctaBody, lang)}</p>
+      <div class="flex flex-wrap justify-center gap-3 mb-6">
+        <Button href={reserveCta.href} variant="cta">{reserveCta.label}</Button>
+        <Button href={siteConfig.contact.phoneHref} variant="filled">{t(common.appelerLeRestaurant, lang)}</Button>
+      </div>
+      <OpenStatusBadge lang={lang} />
+    </div>
+  </section>
+</Layout>

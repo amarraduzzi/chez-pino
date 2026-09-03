@@ -1,0 +1,82 @@
+---
+// "Chez Pino Privilège" — reframed from a full loyalty-program concept
+// (which would require fabricating terms nobody at the restaurant has
+// confirmed) into an honest, simple page: an invitation to stay in touch
+// by phone/WhatsApp for news and offers, no fictional membership tiers or
+// point systems. The route/structure matches the reference architecture's
+// "club" page; the content is deliberately modest and true.
+import Layout from '../layouts/Layout.astro';
+import Button from '../components/Button.astro';
+import Ornament from '../components/Ornament.astro';
+import { siteConfig } from '../config/site.config';
+import { t, localizedPath, type Language } from '../i18n/languages';
+import { place } from '../i18n/ui';
+
+interface Props {
+  lang?: Language;
+}
+const { lang = 'fr' } = Astro.props;
+
+const { name } = siteConfig.identity;
+const primaryKeyword = t(siteConfig.identity.primaryKeyword, lang);
+const city = t(place.city, lang);
+
+const copy = {
+  metaTitle: { fr: `Chez Pino Privilège — ${name}, ${primaryKeyword} à ${city}`, en: `Chez Pino Privilège — ${name}, ${primaryKeyword} in ${city}`, ar: `Chez Pino Privilège — ${name}, ${primaryKeyword} في ${city}` },
+  metaDescription: {
+    fr: `Restez informé des nouveautés et offres ponctuelles de ${name} à ${city} : nouvelle carte, soirées spéciales, ouvertures exceptionnelles.`,
+    en: `Stay informed about ${name}'s news and occasional offers in ${city}: new menu items, special evenings, exceptional openings.`,
+    ar: `ابقوا على اطلاع بمستجدات وعروض ${name} في ${city}: أطباق جديدة، أمسيات خاصة، مناسبات استثنائية.`,
+  },
+  kicker: { fr: 'Restez connectés', en: 'Stay connected', ar: 'ابقوا على تواصل' },
+  heroTitle: { fr: 'Chez Pino Privilège', en: 'Chez Pino Privilège', ar: 'Chez Pino Privilège' },
+  heroSubtitle: {
+    fr: `Pas de carte de fidélité ni de programme à points pour le moment — juste une manière simple de savoir en premier quand il se passe quelque chose chez ${name} : une nouvelle pizza sur la carte, une soirée spéciale, ou un changement d'horaires.`,
+    en: `No loyalty card or points program for now — just a simple way to be among the first to know when something happens at ${name}: a new pizza on the menu, a special evening, or a change in opening hours.`,
+    ar: `لا توجد بطاقة ولاء أو نظام نقاط حاليًا — فقط طريقة بسيطة لتكونوا من أوائل من يعلم عندما يحدث شيء في ${name}: بيتزا جديدة في القائمة، أمسية خاصة، أو تغيير في ساعات العمل.`,
+  },
+  howTitle: { fr: 'Comment rester informé', en: 'How to stay informed', ar: 'كيف تبقون على اطلاع' },
+  howBody: {
+    fr: `Le plus simple : appelez-nous ou passez nous voir, et demandez à être tenu·e au courant. Nous n'avons pas encore de liste de diffusion ni de compte de réseau social officiel — cette page sera mise à jour dès que ce sera le cas, avec de vraies coordonnées, jamais inventées.`,
+    en: `The simplest way: call us or stop by, and ask to be kept in the loop. We don't have a mailing list or an official social media account yet — this page will be updated the moment we do, with real contact details, never invented ones.`,
+    ar: `أبسط طريقة: اتصلوا بنا أو مروا علينا، واطلبوا إبقاءكم على اطلاع. ليس لدينا بعد قائمة بريدية أو حساب رسمي على وسائل التواصل الاجتماعي — سيتم تحديث هذه الصفحة فور توفر ذلك، ببيانات تواصل حقيقية، لا مُختلقة أبدًا.`,
+  },
+  honestyTitle: { fr: 'Une promesse simple', en: 'A simple promise', ar: 'وعد بسيط' },
+  honestyBody: {
+    fr: 'Cette page ne promettra jamais d\'avantages qui n\'existent pas encore. Dès qu\'un vrai programme est mis en place par le restaurant, il sera décrit ici avec ses conditions réelles.',
+    en: 'This page will never promise perks that don\'t exist yet. The moment the restaurant sets up a real program, it will be described here with its actual terms.',
+    ar: 'لن تعد هذه الصفحة أبدًا بمزايا غير موجودة بعد. بمجرد إنشاء المطعم لبرنامج حقيقي، سيتم وصفه هنا بشروطه الفعلية.',
+  },
+} satisfies Record<string, { fr: string; en: string; ar: string }>;
+
+const path = localizedPath('/club', lang);
+---
+<Layout title={t(copy.metaTitle, lang)} description={t(copy.metaDescription, lang)} path={path} lang={lang}>
+  <section class="relative max-w-2xl mx-auto px-5 sm:px-8 pt-28 sm:pt-36 pb-16 text-center overflow-hidden">
+    <div class="section-glow" style="width: 340px; height: 340px; background: var(--color-primary); opacity: 0.07; left: 50%; top: -60px; transform: translateX(-50%);"></div>
+    <div class="relative" data-reveal>
+      <span class="block text-[10px] font-bold uppercase tracking-[0.25em] mb-3" style="color: var(--color-primary)">{t(copy.kicker, lang)}</span>
+      <h1 class="font-display text-3xl sm:text-5xl font-semibold mb-4" style="color: var(--color-text-primary)">{t(copy.heroTitle, lang)}</h1>
+      <p class="text-sm sm:text-base leading-relaxed" style="color: var(--color-text-muted)">{t(copy.heroSubtitle, lang)}</p>
+    </div>
+  </section>
+
+  <Ornament />
+
+  <div class="section-tint">
+    <section class="max-w-2xl mx-auto px-5 sm:px-8 py-14 sm:py-20">
+      <div data-reveal>
+        <h2 class="font-display text-2xl font-semibold mb-3" style="color: var(--color-text-primary)">{t(copy.howTitle, lang)}</h2>
+        <p class="text-sm leading-relaxed" style="color: var(--color-text-muted)">{t(copy.howBody, lang)}</p>
+      </div>
+      <div class="mt-8" data-reveal>
+        <Button href={siteConfig.contact.phoneHref} variant="cta">{siteConfig.contact.phoneDisplay}</Button>
+      </div>
+    </section>
+  </div>
+
+  <section class="max-w-2xl mx-auto px-5 sm:px-8 py-14 sm:py-20" data-reveal>
+    <h2 class="font-display text-xl font-semibold mb-3" style="color: var(--color-text-primary)">{t(copy.honestyTitle, lang)}</h2>
+    <p class="text-sm leading-relaxed" style="color: var(--color-text-muted)">{t(copy.honestyBody, lang)}</p>
+  </section>
+</Layout>

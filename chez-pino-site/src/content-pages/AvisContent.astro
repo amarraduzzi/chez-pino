@@ -1,0 +1,80 @@
+---
+// Reviews page — deliberately no invented review quotes or reviewer names.
+// Only the real, verified Google rating (4.1★, 87 avis) is shown, with a
+// link out to the actual Google Business Profile listing so a visitor can
+// read the real reviews themselves.
+import Layout from '../layouts/Layout.astro';
+import Button from '../components/Button.astro';
+import PageHero from '../components/PageHero.astro';
+import { siteConfig } from '../config/site.config';
+import { t, localizedPath, type Language } from '../i18n/languages';
+import { common, place } from '../i18n/ui';
+
+interface Props {
+  lang?: Language;
+}
+const { lang = 'fr' } = Astro.props;
+
+const { name } = siteConfig.identity;
+const primaryKeyword = t(siteConfig.identity.primaryKeyword, lang);
+const city = t(place.city, lang);
+const avg = siteConfig.social.googleRating ?? '—';
+
+const reviewsJsonLd = siteConfig.social.googleRating
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'Restaurant',
+      name,
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: siteConfig.social.googleRating,
+        reviewCount: siteConfig.social.googleReviewCount,
+      },
+    }
+  : undefined;
+
+const stars = (n: number) => '★'.repeat(n) + '☆'.repeat(5 - n);
+
+const copy = {
+  metaTitle: { fr: `${primaryKeyword} à ${city} — Avis clients | ${name}`, en: `${primaryKeyword} in ${city} — Customer reviews | ${name}`, ar: `${primaryKeyword} في ${city} — آراء العملاء | ${name}` },
+  metaDescription: {
+    fr: `Note Google de ${name}, ${primaryKeyword} à ${city} : ${avg}/5 sur ${siteConfig.social.googleReviewCount} avis.`,
+    en: `Google rating of ${name}, ${primaryKeyword} in ${city}: ${avg}/5 across ${siteConfig.social.googleReviewCount} reviews.`,
+    ar: `تقييم Google لـ${name}, ${primaryKeyword} في ${city}: ${avg}/5 من أصل ${siteConfig.social.googleReviewCount} تقييمًا.`,
+  },
+  heroTitle: { fr: 'Avis clients', en: 'Customer reviews', ar: 'آراء العملاء' },
+  body: {
+    fr: 'Chez Pino est encore un nouveau site — nous n\'avons pas encore recueilli d\'avis directement sur cette page. Notre note Google, elle, est bien réelle : consultez-la, et n\'hésitez pas à laisser le vôtre après votre visite.',
+    en: 'This is a brand-new website for Chez Pino — we haven\'t collected reviews directly on this page yet. Our Google rating is real, though: take a look, and feel free to leave your own after your visit.',
+    ar: 'هذا موقع جديد لـ Chez Pino — لم نجمع بعد آراء مباشرة في هذه الصفحة. لكن تقييمنا على Google حقيقي: اطّلعوا عليه، ولا تترددوا في ترك رأيكم بعد زيارتكم.',
+  },
+  leaveReview: { fr: 'Laisser un avis sur Google', en: 'Leave a review on Google', ar: 'اترك تقييمًا على Google' },
+} satisfies Record<string, { fr: string; en: string; ar: string }>;
+
+const path = localizedPath('/avis', lang);
+---
+<Layout title={t(copy.metaTitle, lang)} description={t(copy.metaDescription, lang)} path={path} lang={lang} jsonLd={reviewsJsonLd}>
+  <PageHero kicker={city} title={t(copy.heroTitle, lang)} />
+
+  <section class="max-w-2xl mx-auto px-5 sm:px-8 py-16 sm:py-24 text-center">
+    {siteConfig.social.googleRating && (
+      <div data-reveal>
+        <p class="stat-huge">{avg}<span class="text-2xl align-top">/5</span></p>
+        <p class="mt-2 text-lg" style="color: var(--color-primary)">{stars(Math.round(Number(avg)))}</p>
+        <p class="mt-1 text-sm" style="color: var(--color-text-muted)">
+          {siteConfig.social.googleReviewCount} {t(common.avisGoogle, lang)}
+        </p>
+      </div>
+    )}
+
+    <p class="mt-8 text-sm sm:text-base leading-relaxed max-w-lg mx-auto" style="color: var(--color-text-muted)" data-reveal>
+      {t(copy.body, lang)}
+    </p>
+
+    {siteConfig.social.googleReviewsUrl && (
+      <div class="mt-8" data-reveal>
+        <Button href={siteConfig.social.googleReviewsUrl} external variant="cta">{t(copy.leaveReview, lang)}</Button>
+      </div>
+    )}
+  </section>
+</Layout>

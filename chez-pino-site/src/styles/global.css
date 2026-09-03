@@ -1,0 +1,237 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================================
+   Design tokens — Chez Pino: black-and-yellow, matching the real storefront
+   photo (black facade, glowing yellow "CHEZ PINO" neon, warm gold lounge
+   lighting). Colors/fonts are the one thing that changes per client; the
+   rest of this file (motion, spacing rhythm, shadow language) is the
+   reusable "system" carried over from the reference architecture.
+   ============================================================================ */
+:root {
+  --color-primary: #F5C518;       /* vivid neon yellow — CTAs, active states */
+  --color-primary-dark: #B8860B;  /* deeper amber, used for warm section tints */
+  --color-accent: #D9A441;        /* restrained warm gold — body accents, borders */
+  --color-background: #0B0B0C;
+  --color-surface: #141310;
+  --color-surface-muted: #1C1A15;
+  --color-text-primary: #F7F3E8;
+  --color-text-muted: #A7A093;
+  --color-border: rgba(247, 243, 232, 0.12);
+
+  --font-display: 'Fraunces', serif;
+  --font-body: 'Manrope', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Arabic pages — Fraunces/Manrope have no Arabic glyphs, so without this
+   every heading and body line on /ar/ pages would silently fall back to
+   the browser's generic system serif/sans. */
+html[lang='ar'] {
+  --font-display: 'Noto Naskh Arabic', 'Fraunces', serif;
+  --font-body: 'Noto Naskh Arabic', 'Manrope', sans-serif;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Same inline-SVG film-grain noise approach as the reference architecture —
+   no image asset needed, works for every client. */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fadeIn 0.4s ease-out both; }
+
+/* ============================================================================
+   Scroll-reveal + hover depth — sitewide motion system (see the script in
+   Layout.astro). Same motion tokens across every client project.
+   ============================================================================ */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+}
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1; transform: none; transition: none; }
+}
+
+.card-lift {
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+}
+@media (hover: none) {
+  .card-lift:active {
+    transform: scale(0.98);
+    border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+  }
+}
+
+.ken-burns img {
+  animation: kenBurns 18s ease-in-out infinite alternate;
+}
+@keyframes kenBurns {
+  from { transform: scale(1); }
+  to { transform: scale(1.12); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ken-burns img { animation: none; }
+}
+
+.photo-frame { overflow: hidden; }
+.photo-frame img {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.photo-frame:hover img {
+  transform: scale(1.06);
+}
+
+[data-reveal='scale'] {
+  transform: scale(0.94);
+}
+[data-reveal='scale'].is-visible {
+  transform: scale(1);
+}
+
+.stat-huge {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1;
+  font-size: clamp(2.75rem, 6vw, 4.5rem);
+  color: var(--color-primary);
+}
+
+.pull-quote {
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 1.25;
+  font-size: clamp(1.5rem, 3.4vw, 2.75rem);
+  color: var(--color-text-primary);
+}
+
+.mark-watermark {
+  position: absolute;
+  opacity: 0.06;
+  pointer-events: none;
+  filter: grayscale(0.2);
+}
+
+.section-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.pull-quote-accent {
+  border-left: 3px solid var(--color-primary);
+  padding-left: 1.25rem;
+}
+
+/* ============================================================================
+   Section rhythm — alternates plain background with a lifted/warm tint so
+   scrolling gets a visual cadence instead of one flat black rectangle.
+   ============================================================================ */
+.section-tint {
+  background-color: var(--color-surface);
+}
+.section-tint-warm {
+  background-color: color-mix(in srgb, var(--color-primary-dark) 16%, var(--color-background));
+}
+
+.menu-item-name {
+  position: relative;
+  display: inline-block;
+}
+.menu-item-name::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 0;
+  height: 1px;
+  background-color: var(--color-primary);
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-lift:hover .menu-item-name::after,
+.card-lift:focus-within .menu-item-name::after {
+  width: 100%;
+}
+.menu-item-price {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
+}
+.card-lift:hover .menu-item-price,
+.card-lift:focus-within .menu-item-price {
+  transform: translateX(-3px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-item-name::after { transition: none; }
+  .menu-item-price { transition: none; }
+}
+[dir='rtl'] .menu-item-name::after {
+  left: auto;
+  right: 0;
+}
+
+/* Styled placeholder blocks — used wherever the real Chez Pino photo does
+   not exist yet (see README.md's "TO SUPPLY" list). Deliberately never an
+   <img> pointing at a missing file: a soft gradient + a small centered
+   glyph + caption, so the layout always renders cleanly. */
+.photo-placeholder {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-surface-muted), var(--color-surface) 60%, color-mix(in srgb, var(--color-primary-dark) 25%, var(--color-surface)));
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  text-align: center;
+  overflow: hidden;
+}
+.photo-placeholder::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent 60%);
+}
+
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: 4px;
+}

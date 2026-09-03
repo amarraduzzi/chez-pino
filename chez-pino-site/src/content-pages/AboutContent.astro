@@ -1,0 +1,84 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHero from '../components/PageHero.astro';
+import Ornament from '../components/Ornament.astro';
+import { siteConfig } from '../config/site.config';
+import { t, localizedPath, type Language } from '../i18n/languages';
+import { place } from '../i18n/ui';
+
+interface Props {
+  lang?: Language;
+}
+const { lang = 'fr' } = Astro.props;
+
+const { name } = siteConfig.identity;
+const primaryKeyword = t(siteConfig.identity.primaryKeyword, lang);
+const city = t(place.city, lang);
+
+const copy = {
+  metaTitle: { fr: `À propos — ${name}, ${primaryKeyword} à ${city}`, en: `About — ${name}, ${primaryKeyword} in ${city}`, ar: `من نحن — ${name}, ${primaryKeyword} في ${city}` },
+  metaDescription: {
+    fr: `${name} : un ${primaryKeyword} et lounge à ${city}, pizzas à pâte reposée 48h, pâtes fraîches et ambiance néon noir et or.`,
+    en: `${name}: an ${primaryKeyword} and lounge in ${city}, 48-hour rested pizza dough, fresh pasta and a black-and-gold neon atmosphere.`,
+    ar: `${name}: ${primaryKeyword} وأجواء لاونج في ${city}، عجينة بيتزا مخمرة 48 ساعة، باستا طازجة وأجواء نيون بالأسود والذهبي.`,
+  },
+  kicker: { fr: 'Notre concept', en: 'Our concept', ar: 'مفهومنا' },
+  heroTitle: { fr: `À propos de ${name}`, en: `About ${name}`, ar: `عن ${name}` },
+  heroAlt: { fr: `Devanture de ${name} à ${city}, la nuit`, en: `${name}'s storefront in ${city}, at night`, ar: `واجهة ${name} في ${city} ليلاً` },
+  p1: {
+    fr: `${name} est un ${primaryKeyword} et lounge installé dans le quartier Riyad Al Andalous à ${city}. Derrière sa devanture noire et son enseigne néon jaune se cache une cuisine italienne généreuse, pensée pour être partagée : pizzas, pâtes fraîches, burgers, viandes et poissons grillés.`,
+    en: `${name} is an ${primaryKeyword} and lounge set in the Riyad Al Andalous neighbourhood of ${city}. Behind its black facade and glowing yellow sign is generous Italian cooking meant to be shared: pizza, fresh pasta, burgers, grilled meat and fish.`,
+    ar: `${name} هو ${primaryKeyword} وأجواء لاونج يقع في حي رياض الأندلس في ${city}. خلف واجهته السوداء ولافتته النيون الصفراء يختبئ مطبخ إيطالي غني، مصمم ليُشارَك: بيتزا، باستا طازجة، برغر، لحوم وأسماك مشوية.`,
+  },
+  p2: {
+    fr: 'Nos pizzas sont préparées avec une pâte qui repose 48 heures avant cuisson — le temps qu\'il faut pour développer une croûte légère et digeste, à l\'italienne. Le reste de la carte suit la même logique : des produits simples, bien travaillés, sans artifice.',
+    en: 'Our pizza dough rests for 48 hours before baking — the time it takes to develop a light, easy-to-digest Italian-style crust. The rest of the menu follows the same logic: simple ingredients, well handled, without shortcuts.',
+    ar: 'تُخمَّر عجينة البيتزا لدينا لمدة 48 ساعة قبل الخبز — الوقت اللازم لتطوير قشرة خفيفة وسهلة الهضم على الطريقة الإيطالية. باقي القائمة تتبع نفس المنطق: مكونات بسيطة، مُحضَّرة بعناية، دون اختصارات.',
+  },
+  p3: {
+    fr: 'Le soir venu, la salle change de rythme : lumière tamisée, néon doré et une carte de boissons qui va du café serré aux mocktails signature — de quoi prolonger le repas en toute simplicité.',
+    en: 'As the evening sets in, the room shifts pace: dim lighting, gold neon and a drinks list that runs from a short espresso to a signature mocktail — an easy way to extend the meal.',
+    ar: 'مع حلول المساء، تتغير أجواء الصالة: إضاءة خافتة، نيون ذهبي وقائمة مشروبات تمتد من إسبريسو قصير إلى موكتيل مميز — طريقة سهلة لإطالة الأمسية.',
+  },
+  statRating: { fr: 'note Google', en: 'Google rating', ar: 'تقييم Google' },
+  statPrice: { fr: 'par personne (Google)', en: 'per person (Google)', ar: 'للشخص الواحد (Google)' },
+  statDough: { fr: 'heures de repos pour la pâte à pizza', en: 'hours of rest for the pizza dough', ar: 'ساعة تخمير لعجينة البيتزا' },
+} satisfies Record<string, { fr: string; en: string; ar: string }>;
+
+const path = localizedPath('/a-propos', lang);
+---
+<Layout title={t(copy.metaTitle, lang)} description={t(copy.metaDescription, lang)} path={path} lang={lang}>
+  <PageHero kicker={t(copy.kicker, lang)} title={t(copy.heroTitle, lang)} image="/brand/storefront-hero.png" alt={t(copy.heroAlt, lang)} />
+
+  <section class="relative max-w-3xl mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-16 overflow-hidden">
+    <div class="section-glow" style="width: 300px; height: 300px; background: var(--color-primary); opacity: 0.05; right: -100px; top: -60px;"></div>
+    <div class="relative space-y-5 text-sm sm:text-base leading-relaxed" style="color: var(--color-text-muted)" data-reveal>
+      <p>{t(copy.p1, lang)}</p>
+      <p>{t(copy.p2, lang)}</p>
+      <p>{t(copy.p3, lang)}</p>
+    </div>
+  </section>
+
+  <div class="section-tint relative overflow-hidden">
+    <section class="relative max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
+      <div class="grid sm:grid-cols-3 gap-10 sm:gap-6">
+        {[
+          { n: `${siteConfig.social.googleRating}/5`, l: `${t(copy.statRating, lang)} · ${siteConfig.social.googleReviewCount} ${t({fr:'avis',en:'reviews',ar:'تقييم'}, lang)}` },
+          { n: '50–100', l: `MAD ${t(copy.statPrice, lang)}` },
+          { n: '48h', l: t(copy.statDough, lang) },
+        ].map((stat, i) => (
+          <div
+            class={`text-center sm:text-left pb-8 sm:pb-0 sm:pl-8 ${i > 0 ? 'border-t sm:border-t-0 sm:border-l pt-8 sm:pt-0' : ''}`}
+            style={`border-color: var(--color-border); transition-delay: ${i * 100}ms`}
+            data-reveal
+          >
+            <p class="stat-huge">{stat.n}</p>
+            <p class="text-xs mt-2 max-w-[14rem] mx-auto sm:mx-0" style="color: var(--color-text-muted)">{stat.l}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  </div>
+
+  <Ornament />
+</Layout>

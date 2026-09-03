@@ -1,0 +1,98 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Button from '../components/Button.astro';
+import PageHero from '../components/PageHero.astro';
+import { siteConfig } from '../config/site.config';
+import { getReserveCtaLabel } from '../lib/nav';
+import { menuCategories } from '../content/full-menu';
+import { t, localizedPath, type Language } from '../i18n/languages';
+import { common, place } from '../i18n/ui';
+
+interface Props {
+  lang?: Language;
+}
+const { lang = 'fr' } = Astro.props;
+
+const { name } = siteConfig.identity;
+const primaryKeyword = t(siteConfig.identity.primaryKeyword, lang);
+const city = t(place.city, lang);
+const reserveCta = getReserveCtaLabel(lang);
+
+const copy = {
+  metaTitle: { fr: `${primaryKeyword} à ${city} — Menu | ${name}`, en: `${primaryKeyword} in ${city} — Menu | ${name}`, ar: `${primaryKeyword} في ${city} — القائمة | ${name}` },
+  metaDescription: {
+    fr: `Une sélection du menu de ${name}, ${primaryKeyword} à ${city} : pizzas, pâtes, burgers, plats et desserts. La carte complète, boissons incluses, est sur la page Carte.`,
+    en: `A selection from ${name}'s menu, ${primaryKeyword} in ${city}: pizza, pasta, burgers, mains and desserts. The full menu, drinks included, is on the Full Menu page.`,
+    ar: `تشكيلة من قائمة ${name}, ${primaryKeyword} في ${city}: بيتزا، باستا، برغر، أطباق رئيسية وحلويات. القائمة الكاملة مع المشروبات في صفحة القائمة الكاملة.`,
+  },
+  heroTitle: { fr: `Le menu de notre ${primaryKeyword} à ${city}`, en: `The menu at our ${primaryKeyword} in ${city}`, ar: `قائمة ${primaryKeyword} في ${city}` },
+  heroSubtitle: {
+    fr: 'Une sélection de nos plats. La carte complète — entrées, pizzas, pâtes, plats, salades, desserts et boissons — est disponible sur la page Carte.',
+    en: 'A selection of our dishes. The full menu — starters, pizza, pasta, mains, salads, desserts and drinks — is on the Full Menu page.',
+    ar: 'تشكيلة من أطباقنا. القائمة الكاملة — مقبلات، بيتزا، باستا، أطباق رئيسية، سلطات، حلويات ومشروبات — متوفرة في صفحة القائمة الكاملة.',
+  },
+} satisfies Record<string, { fr: string; en: string; ar: string }>;
+
+const menuJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Menu',
+  name: `Menu — ${name}`,
+  hasMenuSection: menuCategories.map((cat) => ({
+    '@type': 'MenuSection',
+    name: t(cat.label, lang),
+    hasMenuItem: cat.items.map((item) => ({
+      '@type': 'MenuItem',
+      name: item.name,
+      description: item.description ? t(item.description, lang) : undefined,
+      offers: item.price === 'sur-demande' ? undefined : { '@type': 'Offer', price: item.price, priceCurrency: 'MAD' },
+    })),
+  })),
+};
+
+const path = localizedPath('/menu', lang);
+---
+<Layout title={t(copy.metaTitle, lang)} description={t(copy.metaDescription, lang)} path={path} lang={lang} jsonLd={menuJsonLd}>
+  <PageHero kicker={city} title={t(copy.heroTitle, lang)} subtitle={t(copy.heroSubtitle, lang)} />
+
+  {menuCategories.map((category, ci) => {
+    const warm = ci % 2 === 1;
+    return (
+      <div class={warm ? 'section-tint-warm' : ''}>
+        <section class="max-w-5xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+          <h2 class="font-display text-2xl sm:text-3xl font-semibold mb-1" style="color: var(--color-text-primary)" data-reveal>
+            {t(category.label, lang)}
+          </h2>
+          {category.note && (
+            <p class="text-xs mb-6" style="color: var(--color-text-muted)" data-reveal>{t(category.note, lang)}</p>
+          )}
+          <div class="grid sm:grid-cols-2 gap-4 mt-6">
+            {category.items.slice(0, 4).map((item, i) => (
+              <div
+                class="card-lift rounded-xl p-5"
+                style={`background-color: var(--color-surface); border: 1px solid var(--color-border); transition-delay: ${(i % 4) * 60}ms`}
+                data-reveal
+              >
+                <div class="flex items-baseline justify-between gap-3">
+                  <h3 class="menu-item-name font-display font-semibold" style="color: var(--color-text-primary)">{item.name}</h3>
+                  <span class="menu-item-price text-sm font-bold shrink-0" style="color: var(--color-primary)">
+                    {item.price === 'sur-demande' ? t(common.prixSurDemande, lang) : `${item.price} MAD`}
+                  </span>
+                </div>
+                {item.description && (
+                  <p class="mt-2 text-xs leading-relaxed" style="color: var(--color-text-muted)">{t(item.description, lang)}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    );
+  })}
+
+  <section class="max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-20 text-center" data-reveal>
+    <div class="flex flex-wrap justify-center gap-3">
+      <Button href={localizedPath('/carte', lang)} variant="filled">{t(common.voirLaCarteComplete, lang)}</Button>
+      <Button href={reserveCta.href} variant="cta">{reserveCta.label}</Button>
+    </div>
+  </section>
+</Layout>

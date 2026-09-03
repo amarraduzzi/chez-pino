@@ -1,0 +1,47 @@
+---
+// Per-page SEO head partial. Every page passes its OWN title/description.
+import { siteConfig } from '../config/site.config';
+import { LANGUAGES, localizedPath, type Language } from '../i18n/languages';
+
+interface Props {
+  title: string;
+  description: string;
+  path: string;
+  lang?: Language;
+  ogImage?: string;
+  jsonLd?: object | object[];
+  noindex?: boolean;
+}
+
+const { title, description, path, lang = 'fr', ogImage, jsonLd, noindex = false } = Astro.props;
+const canonical = new URL(path, siteConfig.identity.siteUrl).toString();
+const image = ogImage ? new URL(ogImage, siteConfig.identity.siteUrl).toString() : undefined;
+const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+const ogLocale: Record<Language, string> = { fr: 'fr_MA', en: 'en_US', ar: 'ar_MA' };
+
+const alternates = LANGUAGES.map((l) => ({
+  lang: l,
+  href: new URL(localizedPath(path, l), siteConfig.identity.siteUrl).toString(),
+}));
+---
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{alternates.map((alt) => <link rel="alternate" hreflang={alt.lang} href={alt.href} />)}
+<link rel="alternate" hreflang="x-default" href={new URL(localizedPath(path, 'fr'), siteConfig.identity.siteUrl).toString()} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+
+<meta property="og:type" content="restaurant.restaurant" />
+<meta property="og:locale" content={ogLocale[lang]} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+{image && <meta property="og:image" content={image} />}
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+{image && <meta name="twitter:image" content={image} />}
+
+{jsonLdBlocks.map((block) => (
+  <script type="application/ld+json" set:html={JSON.stringify(block)} />
+))}

@@ -1,0 +1,142 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHero from '../components/PageHero.astro';
+import Ornament from '../components/Ornament.astro';
+import { siteConfig } from '../config/site.config';
+import { menuCategories, drinkMenu } from '../content/full-menu';
+import { t, localizedPath, type Language } from '../i18n/languages';
+import { common, place } from '../i18n/ui';
+
+interface Props {
+  lang?: Language;
+}
+const { lang = 'fr' } = Astro.props;
+
+const { name } = siteConfig.identity;
+const primaryKeyword = t(siteConfig.identity.primaryKeyword, lang);
+const city = t(place.city, lang);
+
+const copy = {
+  metaTitle: { fr: `Carte complète — ${primaryKeyword} à ${city} | ${name}`, en: `Full menu — ${primaryKeyword} in ${city} | ${name}`, ar: `القائمة الكاملة — ${primaryKeyword} في ${city} | ${name}` },
+  metaDescription: {
+    fr: `La carte complète de ${name} : pizzas, pâtes, burgers, plats, salades, desserts et notre carte de boissons (cafés, jus, cocktails, milk-shakes...), tous les prix en MAD.`,
+    en: `${name}'s full menu: pizza, pasta, burgers, mains, salads, desserts and our full drinks list (coffee, juice, cocktails, milkshakes...), all prices in MAD.`,
+    ar: `القائمة الكاملة لـ${name}: بيتزا، باستا، برغر، أطباق رئيسية، سلطات، حلويات وقائمة المشروبات الكاملة (قهوة، عصائر، كوكتيلات، ميلك شيك...)، جميع الأسعار بالدرهم المغربي.`,
+  },
+  heroTitle: { fr: 'La carte complète', en: 'The full menu', ar: 'القائمة الكاملة' },
+  heroSubtitle: {
+    fr: 'Tous nos plats et toutes nos boissons, prix en MAD.',
+    en: 'Every dish and every drink, prices in MAD.',
+    ar: 'جميع أطباقنا ومشروباتنا، الأسعار بالدرهم المغربي.',
+  },
+  jumpFood: { fr: 'Plats', en: 'Food', ar: 'الأطباق' },
+  jumpDrinks: { fr: 'Boissons', en: 'Drinks', ar: 'المشروبات' },
+  drinksTitle: { fr: 'Carte des boissons', en: 'Drinks menu', ar: 'قائمة المشروبات' },
+  drinksSubtitle: {
+    fr: 'Cafés, thés, jus frais, iced coffee, frappuccinos, smoothies, milk-shakes, mojitos, cocktails sans alcool et plus.',
+    en: 'Coffee, tea, fresh juice, iced coffee, frappuccinos, smoothies, milkshakes, mojitos, non-alcoholic cocktails and more.',
+    ar: 'قهوة، شاي، عصائر طازجة، قهوة مثلجة، فرابتشينو، سموذي، ميلك شيك، موخيتو، كوكتيلات بدون كحول والمزيد.',
+  },
+} satisfies Record<string, { fr: string; en: string; ar: string }>;
+
+const menuJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Menu',
+  name: `Carte complète — ${name}`,
+  hasMenuSection: [
+    ...menuCategories.map((cat) => ({
+      '@type': 'MenuSection',
+      name: t(cat.label, lang),
+      hasMenuItem: cat.items.map((item) => ({
+        '@type': 'MenuItem',
+        name: item.name,
+        offers: item.price === 'sur-demande' ? undefined : { '@type': 'Offer', price: item.price, priceCurrency: 'MAD' },
+      })),
+    })),
+    ...drinkMenu.map((sub) => ({
+      '@type': 'MenuSection',
+      name: t(sub.label, lang),
+      hasMenuItem: sub.items.map((item) => ({
+        '@type': 'MenuItem',
+        name: item.name,
+        offers: { '@type': 'Offer', price: item.price, priceCurrency: 'MAD' },
+      })),
+    })),
+  ],
+};
+
+const path = localizedPath('/carte', lang);
+---
+<Layout title={t(copy.metaTitle, lang)} description={t(copy.metaDescription, lang)} path={path} lang={lang} jsonLd={menuJsonLd}>
+  <PageHero kicker={city} title={t(copy.heroTitle, lang)} subtitle={t(copy.heroSubtitle, lang)} />
+
+  <!-- Jump nav -->
+  <div class="sticky top-16 sm:top-20 z-30" style="background-color: color-mix(in srgb, var(--color-background) 92%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--color-border)">
+    <nav class="max-w-5xl mx-auto px-5 sm:px-8 py-3 flex flex-wrap gap-x-6 gap-y-2 text-xs font-bold uppercase tracking-wide">
+      <a href="#plats" style="color: var(--color-primary)">{t(copy.jumpFood, lang)}</a>
+      <a href="#boissons" style="color: var(--color-primary)">{t(copy.jumpDrinks, lang)}</a>
+      {menuCategories.map((c) => (
+        <a href={`#${c.id}`} class="hidden md:inline" style="color: var(--color-text-muted)">{t(c.label, lang)}</a>
+      ))}
+    </nav>
+  </div>
+
+  <div id="plats"></div>
+  {menuCategories.map((category, ci) => {
+    const warm = ci % 2 === 1;
+    return (
+      <div id={category.id} class={warm ? 'section-tint-warm' : ''} style="scroll-margin-top: 7rem">
+        <section class="max-w-5xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+          <h2 class="font-display text-2xl sm:text-3xl font-semibold mb-1" style="color: var(--color-text-primary)" data-reveal>
+            {t(category.label, lang)}
+          </h2>
+          {category.note && (
+            <p class="text-xs mb-6 max-w-xl" style="color: var(--color-text-muted)" data-reveal>{t(category.note, lang)}</p>
+          )}
+          <ul class="mt-6 divide-y" style="border-color: var(--color-border)">
+            {category.items.map((item, i) => (
+              <li class="py-4 first:pt-0 last:pb-0" data-reveal style={`transition-delay: ${(i % 6) * 40}ms`}>
+                <div class="flex items-baseline justify-between gap-4">
+                  <h3 class="menu-item-name font-display font-semibold text-base" style="color: var(--color-text-primary)">{item.name}</h3>
+                  <span class="menu-item-price shrink-0 text-sm font-bold" style="color: var(--color-primary)">
+                    {item.price === 'sur-demande' ? t(common.prixSurDemande, lang) : `${item.price} MAD`}
+                  </span>
+                </div>
+                {item.description && (
+                  <p class="mt-1.5 text-xs leading-relaxed max-w-xl" style="color: var(--color-text-muted)">{t(item.description, lang)}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    );
+  })}
+
+  <Ornament />
+
+  <!-- Drinks -->
+  <div id="boissons" class="section-tint" style="scroll-margin-top: 7rem">
+    <section class="max-w-5xl mx-auto px-5 sm:px-8 py-14 sm:py-20">
+      <div class="mb-10" data-reveal>
+        <h2 class="font-display text-3xl sm:text-4xl font-semibold mb-2" style="color: var(--color-text-primary)">{t(copy.drinksTitle, lang)}</h2>
+        <p class="text-sm max-w-xl" style="color: var(--color-text-muted)">{t(copy.drinksSubtitle, lang)}</p>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-x-10 gap-y-10">
+        {drinkMenu.map((sub, si) => (
+          <div data-reveal style={`transition-delay: ${(si % 4) * 60}ms`}>
+            <h3 class="text-xs font-bold uppercase tracking-[0.2em] mb-3" style="color: var(--color-accent)">{t(sub.label, lang)}</h3>
+            <ul class="space-y-2">
+              {sub.items.map((item) => (
+                <li class="flex items-baseline justify-between gap-4 text-sm">
+                  <span style="color: var(--color-text-primary)">{item.name}</span>
+                  <span class="shrink-0 font-semibold" style="color: var(--color-primary)">{item.price} MAD</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  </div>
+</Layout>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://chez-pino.ma/sitemap.xml
