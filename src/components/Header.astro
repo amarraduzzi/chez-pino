@@ -1,6 +1,9 @@
 ---
-// Uses the real Chez Pino logo (yellow mark on transparent background,
-// public/brand/logo-pino.png) instead of the earlier typographic fallback.
+// Real Chez Pino logo (yellow mark on transparent background,
+// public/brand/logo-pino.png). Bigger header/logo per client feedback.
+// Mobile language switcher is a compact dropdown (button + chevron) next
+// to the hamburger toggle, instead of 3 pills side by side — the pill row
+// is kept for sm+ screens where there's room for it.
 import { siteConfig } from '../config/site.config';
 import { getReserveCtaLabel } from '../lib/nav';
 import { LANGUAGES, LANGUAGE_LABEL, LANGUAGE_NATIVE_NAME, localizedPath, arrow, t, type Language } from '../i18n/languages';
@@ -28,9 +31,9 @@ const currentPath = Astro.url.pathname;
 const langLinks = LANGUAGES.map((l) => ({ lang: l, href: localizedPath(currentPath, l) }));
 ---
 <header id="site-header" class="sticky top-0 z-40 transition-all duration-300" data-scrolled="false">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-4">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 sm:h-28 flex items-center justify-between gap-3 sm:gap-4">
     <a href={localizedPath('/', lang)} class="flex items-center gap-2 min-w-0 shrink">
-      <img src="/brand/logo-pino.png" alt={siteConfig.identity.name} class="h-12 sm:h-16 w-auto" />
+      <img src="/brand/logo-pino.png" alt={siteConfig.identity.name} class="h-16 sm:h-24 w-auto" />
     </a>
 
     {!minimal && (
@@ -47,7 +50,8 @@ const langLinks = LANGUAGES.map((l) => ({ lang: l, href: localizedPath(currentPa
       </nav>
     )}
 
-    <div class="flex items-center gap-0.5 sm:gap-1 shrink-0 rounded-full p-0.5" style="border: 1px solid var(--color-border)">
+    <!-- Desktop / tablet: full 3-way pill switcher -->
+    <div class="hidden sm:flex items-center gap-0.5 sm:gap-1 shrink-0 rounded-full p-0.5" style="border: 1px solid var(--color-border)">
       {langLinks.map((l) => (
         <a
           href={l.href}
@@ -59,6 +63,40 @@ const langLinks = LANGUAGES.map((l) => ({ lang: l, href: localizedPath(currentPa
           {LANGUAGE_LABEL[l.lang]}
         </a>
       ))}
+    </div>
+
+    <!-- Mobile only: collapsed dropdown, sits right next to the hamburger -->
+    <div class="relative sm:hidden shrink-0" id="lang-dropdown">
+      <button
+        type="button"
+        id="lang-dropdown-toggle"
+        aria-haspopup="true"
+        aria-expanded="false"
+        class="flex items-center gap-1 pl-2.5 pr-2 py-1.5 rounded-full text-[11px] font-bold"
+        style="border: 1px solid var(--color-border); color: var(--color-text-primary)"
+      >
+        <span id="lang-dropdown-current">{LANGUAGE_LABEL[lang]}</span>
+        <svg id="lang-dropdown-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="transition-transform duration-200">
+          <path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+      <div
+        id="lang-dropdown-menu"
+        class="hidden absolute right-0 top-full mt-2 rounded-xl overflow-hidden z-50"
+        style="background-color: var(--color-surface); border: 1px solid var(--color-border); box-shadow: 0 12px 28px rgba(0,0,0,0.5); min-width: 84px"
+      >
+        {langLinks.map((l) => (
+          <a
+            href={l.href}
+            aria-label={LANGUAGE_NATIVE_NAME[l.lang]}
+            aria-current={lang === l.lang ? 'true' : undefined}
+            class="block px-4 py-2.5 text-xs font-bold transition-colors"
+            style={`color: ${lang === l.lang ? 'var(--color-primary)' : 'var(--color-text-primary)'}`}
+          >
+            {LANGUAGE_LABEL[l.lang]}
+          </a>
+        ))}
+      </div>
     </div>
 
     {!minimal && (
@@ -122,16 +160,27 @@ const langLinks = LANGUAGES.map((l) => ({ lang: l, href: localizedPath(currentPa
   #mobile-nav-panel.open {
     display: flex;
   }
+  #lang-dropdown-menu.open {
+    display: block;
+  }
+  #lang-dropdown-chevron.open {
+    transform: rotate(180deg);
+  }
 </style>
 
 <script>
   let scrollHandler: (() => void) | null = null;
+  let outsideClickHandler: ((e: MouseEvent) => void) | null = null;
 
   document.addEventListener('astro:page-load', () => {
     const header = document.getElementById('site-header');
     const progress = document.getElementById('header-progress');
     const toggle = document.getElementById('mobile-nav-toggle');
     const panel = document.getElementById('mobile-nav-panel');
+    const langWrap = document.getElementById('lang-dropdown');
+    const langToggle = document.getElementById('lang-dropdown-toggle');
+    const langMenu = document.getElementById('lang-dropdown-menu');
+    const langChevron = document.getElementById('lang-dropdown-chevron');
 
     function onScroll() {
       if (!header || !progress) return;
@@ -150,6 +199,29 @@ const langLinks = LANGUAGES.map((l) => ({ lang: l, href: localizedPath(currentPa
     toggle?.addEventListener('click', () => {
       const isOpen = panel?.classList.toggle('open');
       toggle.setAttribute('aria-expanded', String(Boolean(isOpen)));
+    });
+
+    function closeLangMenu() {
+      langMenu?.classList.remove('open');
+      langChevron?.classList.remove('open');
+      langToggle?.setAttribute('aria-expanded', 'false');
+    }
+
+    langToggle?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = langMenu?.classList.toggle('open');
+      langChevron?.classList.toggle('open', Boolean(isOpen));
+      langToggle.setAttribute('aria-expanded', String(Boolean(isOpen)));
+    });
+
+    if (outsideClickHandler) document.removeEventListener('click', outsideClickHandler);
+    outsideClickHandler = (e: MouseEvent) => {
+      if (langWrap && !langWrap.contains(e.target as Node)) closeLangMenu();
+    };
+    document.addEventListener('click', outsideClickHandler);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLangMenu();
     });
   });
 </script>
