@@ -129,7 +129,18 @@ const path = localizedPath('/', lang);
        particles layered on top for a bit of life beyond a static photo. -->
   <section class="relative min-h-[560px] sm:h-[86vh] flex items-end overflow-hidden">
     <div class="ken-burns absolute inset-0" data-parallax="0.12">
-      <img src="/brand/storefront-hero.png" alt={t(copy.heroAlt, lang)} class="absolute inset-0 w-full h-full object-cover" />
+      <picture>
+        <source srcset="/brand/storefront-hero.webp" type="image/webp" />
+        <img
+          src="/brand/storefront-hero.jpg"
+          alt={t(copy.heroAlt, lang)}
+          class="absolute inset-0 w-full h-full object-cover"
+          width="1719"
+          height="915"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </picture>
     </div>
     <div class="absolute inset-0" style="background: linear-gradient(0deg, var(--color-background) 6%, rgba(11,11,12,0.35) 45%, rgba(11,11,12,0.55) 100%)"></div>
     <div class="hero-particles absolute inset-0 z-[5] pointer-events-none overflow-hidden" aria-hidden="true">
