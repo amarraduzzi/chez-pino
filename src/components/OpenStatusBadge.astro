@@ -1,7 +1,11 @@
 ---
 // Live "open now / closed" badge — computed client-side from the
 // restaurant's real local time (Africa/Casablanca), not the visitor's own
-// timezone/clock.
+// timezone/clock. Rendered as a filled pill (not bare text) with a live
+// pulsing dot and the relevant transition time ("Ferme à 23:00" /
+// "Ouvre à 12:00"), so it reads as a proper live-status chip rather than
+// a caption floating in empty space — this is what fills the gap next to
+// the logo in the mobile header (see Header.astro's compact usage).
 import { siteConfig } from '../config/site.config';
 import { t, type Language } from '../i18n/languages';
 import { common } from '../i18n/ui';
@@ -18,40 +22,99 @@ const shortLabel = { fr: ['Ouvert', 'Fermé'], en: ['Open', 'Closed'], ar: ['م�
 const [shortOpen, shortClosed] = shortLabel[lang] ?? shortLabel.fr;
 const labelOpen = compact ? shortOpen : t(common.ouvertMaintenant, lang);
 const labelClosed = compact ? shortClosed : t(common.fermeMaintenant, lang);
+const fermeA = t(common.fermeA, lang);
+const ouvreA = t(common.ouvreA, lang);
+const openTime = `${open}:00`;
+const closeTime = `${close}:00`;
 ---
 <span
-  class="open-status-badge inline-flex items-center gap-1.5"
+  class:list={['open-status-badge inline-flex items-center', compact ? 'compact' : '']}
   data-open-hour={open}
   data-close-hour={close}
   data-label-open={labelOpen}
   data-label-closed={labelClosed}
+  data-ferme-a={fermeA}
+  data-ouvre-a={ouvreA}
+  data-open-time={openTime}
+  data-close-time={closeTime}
 >
 </span>
 
 <style>
   .open-status-badge {
+    gap: 0.4rem;
     font-size: 0.7rem;
     font-weight: 700;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
+    padding: 0.32rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    white-space: nowrap;
   }
-  .open-status-badge .dot {
+  .open-status-badge.compact {
+    font-size: 0.62rem;
+    padding: 0.26rem 0.55rem;
+  }
+  .open-status-badge :global(.dot-wrap) {
+    position: relative;
     width: 7px;
     height: 7px;
-    border-radius: 999px;
     flex-shrink: 0;
   }
-  .open-status-badge[data-state='open'] .dot {
-    background-color: #3fbf60;
-    box-shadow: 0 0 0 3px color-mix(in srgb, #3fbf60 25%, transparent);
+  .open-status-badge :global(.dot) {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
   }
-  .open-status-badge[data-state='closed'] .dot {
-    background-color: var(--color-text-muted);
+  .open-status-badge :global(.dot-ping) {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    animation: statusPing 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  @keyframes statusPing {
+    0% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    75%,
+    100% {
+      transform: scale(2.4);
+      opacity: 0;
+    }
+  }
+  .open-status-badge :global(.transition-time) {
+    opacity: 0.85;
+    font-weight: 600;
+  }
+  .open-status-badge :global(.divider) {
+    opacity: 0.5;
   }
   .open-status-badge[data-state='open'] {
     color: #3fbf60;
+    background-color: color-mix(in srgb, #3fbf60 14%, transparent);
+    border-color: color-mix(in srgb, #3fbf60 35%, transparent);
+  }
+  .open-status-badge[data-state='open'] :global(.dot),
+  .open-status-badge[data-state='open'] :global(.dot-ping) {
+    background-color: #3fbf60;
   }
   .open-status-badge[data-state='closed'] {
     color: var(--color-text-muted);
+    background-color: color-mix(in srgb, var(--color-text-muted) 12%, transparent);
+    border-color: var(--color-border);
+  }
+  .open-status-badge[data-state='closed'] :global(.dot) {
+    background-color: var(--color-text-muted);
+  }
+  .open-status-badge[data-state='closed'] :global(.dot-ping) {
+    display: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .open-status-badge :global(.dot-ping) {
+      animation: none;
+      display: none;
+    }
   }
 </style>
 
@@ -71,7 +134,9 @@ const labelClosed = compact ? shortClosed : t(common.fermeMaintenant, lang);
 
       badge.setAttribute('data-state', isOpen ? 'open' : 'closed');
       const label = isOpen ? badge.getAttribute('data-label-open') : badge.getAttribute('data-label-closed');
-      badge.innerHTML = `<span class="dot"></span><span>${label}</span>`;
+      const transitionWord = isOpen ? badge.getAttribute('data-ferme-a') : badge.getAttribute('data-ouvre-a');
+      const transitionTime = isOpen ? badge.getAttribute('data-close-time') : badge.getAttribute('data-open-time');
+      badge.innerHTML = `<span class="dot-wrap"><span class="dot-ping"></span><span class="dot"></span></span><span>${label}</span><span class="divider">·</span><span class="transition-time">${transitionWord} ${transitionTime}</span>`;
     });
   });
 </script>
