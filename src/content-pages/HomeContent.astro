@@ -5,6 +5,7 @@ import Layout from '../layouts/Layout.astro';
 import Button from '../components/Button.astro';
 import Ornament from '../components/Ornament.astro';
 import OpenStatusBadge from '../components/OpenStatusBadge.astro';
+import FlagAccent from '../components/FlagAccent.astro';
 import { siteConfig } from '../config/site.config';
 import { getReserveCtaLabel } from '../lib/nav';
 import { menuCategories } from '../content/full-menu';
@@ -51,14 +52,18 @@ const copy = {
     en: `${name} brings together carefully made Italian food — 48-hour rested pizza dough, fresh pasta, grilled meat and fish — with lounge energy: dim lighting, gold neon, and a drinks list that runs from a short espresso to a signature cocktail.`,
     ar: `يجمع ${name} بين مطبخ إيطالي متقن — عجينة بيتزا مخمرة 48 ساعة، باستا طازجة، لحوم وأسماك مشوية — وأجواء لاونج: إضاءة خافتة، نيون ذهبي، وقائمة مشروبات تمتد من إسبريسو قصير إلى كوكتيل مميز.`,
   },
+  statRating: { fr: 'Note Google', en: 'Google rating', ar: 'تقييم جوجل' },
+  statReviews: { fr: 'Avis clients', en: 'Customer reviews', ar: 'تقييمات العملاء' },
+  statDishes: { fr: 'Plats à la carte', en: 'Dishes on the menu', ar: 'طبقاً في القائمة' },
+  statDays: { fr: 'Jours ouverts / semaine', en: 'Days open / week', ar: 'أيام العمل / أسبوعياً' },
   highlightsKicker: { fr: 'À la carte', en: 'On the menu', ar: 'من القائمة' },
   highlightsTitle: { fr: 'Quelques signatures de la maison', en: 'A few house signatures', ar: 'بعض أطباقنا المميزة' },
   galleryKicker: { fr: 'Dans l\'assiette', en: 'On the plate', ar: 'في الطبق' },
   galleryTitle: { fr: 'Un aperçu de nos assiettes', en: 'A taste of our kitchen', ar: 'لمحة عن أطباقنا' },
   gallerySubtitle: {
-    fr: 'Quelques assiettes servies récemment en salle — pizzas, pâtes et desserts maison.',
-    en: 'A few plates recently served in the dining room — pizza, pasta and homemade desserts.',
-    ar: 'بعض الأطباق التي قُدّمت مؤخرًا في الصالة — بيتزا وباستا وحلويات منزلية.',
+    fr: 'Quelques assiettes servies récemment en salle — pizzas, pâtes et desserts maison. Cliquez pour agrandir.',
+    en: 'A few plates recently served in the dining room — pizza, pasta and homemade desserts. Click to enlarge.',
+    ar: 'بعض الأطباق التي قُدّمت مؤخرًا في الصالة — بيتزا وباستا وحلويات منزلية. انقر للتكبير.',
   },
   ratingLine: { fr: 'sur Google', en: 'on Google', ar: 'على Google' },
   ctaTitle: { fr: 'Une table vous attend', en: 'A table awaits you', ar: 'طاولة بانتظاركم' },
@@ -75,9 +80,31 @@ const highlights = menuCategories
   .filter((c) => c.id !== 'dessert')
   .map((c) => ({ category: c, item: c.items[Math.min(2, c.items.length - 1)] }));
 
+// Thin monoline gold icons per food category — a small illustrated touch on
+// the signature cards instead of plain text-only tiles. Trusted, hand-written
+// markup (not user input), rendered with set:html.
+const categoryIcons: Record<string, string> = {
+  hamburgers: '<path d="M4 10a8 4 0 0116 0"/><path d="M4 10.5h16"/><path d="M5 13.5h14"/><path d="M4 16a8 3 0 0016 0"/>',
+  entrees: '<path d="M4 12a8 7 0 0016 0"/><path d="M8 6c0 1.2-1 1.2-1 2.4M12 5c0 1.2-1 1.2-1 2.4M16 6c0 1.2-1 1.2-1 2.4"/>',
+  pizza: '<path d="M12 3L4 19a12 12 0 0016 0L12 3z"/><circle cx="11" cy="13" r="0.9" fill="var(--color-primary)" stroke="none"/><circle cx="14.5" cy="16" r="0.9" fill="var(--color-primary)" stroke="none"/>',
+  pasta: '<path d="M3 9c3-3 6-3 9 0s6 3 9 0"/><path d="M3 15c3-3 6-3 9 0s6 3 9 0"/>',
+  plats: '<path d="M5 3v6a2 2 0 002 2h0"/><path d="M5 3v18"/><path d="M9 3v6"/><path d="M17 3c-1.8 0-3 1.6-3 3.5V10l3 2v9"/>',
+  salades: '<path d="M12 21C7 21 3 17 3 12c5 0 9-4 9-9 5 0 9 4 9 9 0 5-4 9-9 9z"/><path d="M12 21V9"/>',
+};
+
+// Real, computed count — every dish in menuCategories, not a made-up figure.
+const totalDishes = menuCategories.reduce((sum, c) => sum + c.items.length, 0);
+
+const stats = [
+  { value: siteConfig.social.googleRating ?? '', decimals: 1, suffix: '/5', label: copy.statRating },
+  { value: siteConfig.social.googleReviewCount ?? '', decimals: 0, suffix: '+', label: copy.statReviews },
+  { value: String(totalDishes), decimals: 0, suffix: '', label: copy.statDishes },
+  { value: '7', decimals: 0, suffix: '/7', label: copy.statDays },
+].filter((s) => s.value);
+
 // A handful of real, in-house dish photos (not stock/AI imagery) for a
 // "what actually comes out of the kitchen" gallery. Filenames live in
-// public/dishes/.
+// public/dishes/. Each is clickable — see the lightbox script below.
 const galleryPhotos = [
   { src: '/dishes/steak.jpg', caption: 'Filet de Bœuf grillé' },
   { src: '/dishes/pasta.jpg', caption: 'Tagliatelle Frutti di Mare' },
@@ -96,24 +123,40 @@ const path = localizedPath('/', lang);
   lang={lang}
 >
   <!-- The one authentic Chez Pino photo we have — the real storefront, at
-       night, black facade and glowing yellow sign. Used here at full hero
-       scale, deliberately not cropped or filtered into something else. -->
+       night, black facade and glowing yellow sign. Ken Burns zoom on the
+       photo itself, a light parallax drift on the whole layer (see
+       data-parallax below), and a handful of slowly drifting gold
+       particles layered on top for a bit of life beyond a static photo. -->
   <section class="relative min-h-[560px] sm:h-[86vh] flex items-end overflow-hidden">
-    <div class="ken-burns absolute inset-0">
+    <div class="ken-burns absolute inset-0" data-parallax="0.12">
       <img src="/brand/storefront-hero.png" alt={t(copy.heroAlt, lang)} class="absolute inset-0 w-full h-full object-cover" />
     </div>
     <div class="absolute inset-0" style="background: linear-gradient(0deg, var(--color-background) 6%, rgba(11,11,12,0.35) 45%, rgba(11,11,12,0.55) 100%)"></div>
+    <div class="hero-particles absolute inset-0 z-[5] pointer-events-none overflow-hidden" aria-hidden="true">
+      <span class="hero-particle" style="left:8%; top:70%; width:6px; height:6px; animation-duration:14s; animation-delay:0s;"></span>
+      <span class="hero-particle" style="left:18%; top:30%; width:4px; height:4px; animation-duration:18s; animation-delay:-4s;"></span>
+      <span class="hero-particle" style="left:32%; top:55%; width:8px; height:8px; animation-duration:22s; animation-delay:-9s;"></span>
+      <span class="hero-particle" style="left:47%; top:20%; width:5px; height:5px; animation-duration:16s; animation-delay:-2s;"></span>
+      <span class="hero-particle" style="left:61%; top:65%; width:7px; height:7px; animation-duration:20s; animation-delay:-11s;"></span>
+      <span class="hero-particle" style="left:74%; top:35%; width:4px; height:4px; animation-duration:15s; animation-delay:-6s;"></span>
+      <span class="hero-particle" style="left:85%; top:60%; width:6px; height:6px; animation-duration:19s; animation-delay:-3s;"></span>
+      <span class="hero-particle" style="left:93%; top:25%; width:5px; height:5px; animation-duration:17s; animation-delay:-8s;"></span>
+    </div>
     <div class="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 pb-14 sm:pb-20 w-full">
-      <span class="block text-[11px] font-bold uppercase tracking-[0.3em] mb-4" style="color: var(--color-primary)">
+      <span class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.3em] mb-4" style="color: var(--color-primary)">
+        <FlagAccent />
         {t(copy.heroKicker, lang)}
       </span>
-      <h1 class="font-display text-4xl sm:text-6xl lg:text-7xl font-semibold max-w-3xl leading-[1.05]" style="color: var(--color-text-primary)">
+      <h1
+        class="font-display font-semibold max-w-3xl leading-[1.08]"
+        style="color: var(--color-text-primary); font-size: clamp(1.9rem, 7vw, 4.5rem)"
+      >
         {t(copy.heroTitle, lang)}
       </h1>
-      <p class="mt-5 max-w-xl text-sm sm:text-base" style="color: var(--color-text-muted)">
+      <p class="mt-4 sm:mt-5 max-w-xl text-sm sm:text-base" style="color: var(--color-text-muted)">
         {t(copy.heroSubtitle, lang)}
       </p>
-      <div class="mt-8 flex flex-wrap gap-3">
+      <div class="mt-8 sm:mt-10 flex flex-wrap gap-3">
         <Button href={reserveCta.href} variant="cta">{reserveCta.label}</Button>
         <Button href={localizedPath('/carte', lang)} variant="outline">{t(common.voirLaCarte, lang)}</Button>
       </div>
@@ -123,17 +166,24 @@ const path = localizedPath('/', lang);
   <!-- Gallery — real, in-house dish photography (not stock or AI images) -->
   <section class="relative max-w-7xl mx-auto px-5 sm:px-8 py-14 sm:py-20 overflow-hidden">
     <div class="section-glow" style="width: 380px; height: 380px; background: var(--color-primary); opacity: 0.05; left: -140px; bottom: -120px;"></div>
-    <div class="relative mb-10 max-w-2xl" data-reveal>
-      <span class="block text-[10px] font-bold uppercase tracking-[0.25em] mb-2" style="color: var(--color-primary)">{t(copy.galleryKicker, lang)}</span>
+    <div class="relative mb-10 max-w-2xl" data-reveal="left">
+      <span class="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] mb-2" style="color: var(--color-primary)">
+        <FlagAccent />
+        {t(copy.galleryKicker, lang)}
+      </span>
       <h2 class="font-display text-3xl sm:text-4xl font-semibold mb-3" style="color: var(--color-text-primary)">{t(copy.galleryTitle, lang)}</h2>
       <p class="text-sm sm:text-base" style="color: var(--color-text-muted)">{t(copy.gallerySubtitle, lang)}</p>
     </div>
-    <div class="relative grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+    <div class="relative gallery-grid">
       {galleryPhotos.map((photo, i) => (
-        <div
-          class="photo-frame relative rounded-2xl overflow-hidden aspect-[4/5]"
+        <button
+          type="button"
+          class="gallery-item photo-frame relative rounded-2xl overflow-hidden aspect-[4/5]"
           style={`transition-delay: ${(i % 3) * 80}ms`}
           data-reveal
+          data-lightbox-src={photo.src}
+          data-lightbox-caption={photo.caption}
+          aria-label={photo.caption}
         >
           <img
             src={photo.src}
@@ -145,9 +195,9 @@ const path = localizedPath('/', lang);
             class="absolute inset-x-0 bottom-0 px-3 sm:px-4 py-3 sm:py-4"
             style="background: linear-gradient(0deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 70%)"
           >
-            <span class="text-[11px] sm:text-xs font-bold" style="color: var(--color-text-primary)">{photo.caption}</span>
+            <span class="text-xs sm:text-sm font-bold" style="color: var(--color-text-primary)">{photo.caption}</span>
           </div>
-        </div>
+        </button>
       ))}
     </div>
   </section>
@@ -155,12 +205,31 @@ const path = localizedPath('/', lang);
   <!-- Intro -->
   <section class="relative max-w-3xl mx-auto px-5 sm:px-8 pt-16 sm:pt-20 pb-12 overflow-hidden">
     <div class="section-glow" style="width: 340px; height: 340px; background: var(--color-primary); opacity: 0.05; right: -120px; top: -80px;"></div>
-    <div class="relative" data-reveal>
-      <span class="block text-[10px] font-bold uppercase tracking-[0.25em] mb-2" style="color: var(--color-primary)">{t(copy.introKicker, lang)}</span>
+    <div class="relative" data-reveal="left">
+      <span class="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] mb-2" style="color: var(--color-primary)">
+        <FlagAccent />
+        {t(copy.introKicker, lang)}
+      </span>
       <h2 class="font-display text-3xl sm:text-4xl font-semibold mb-4" style="color: var(--color-text-primary)">{t(copy.introTitle, lang)}</h2>
       <p class="text-sm sm:text-base leading-relaxed" style="color: var(--color-text-muted)">{t(copy.introBody, lang)}</p>
     </div>
   </section>
+
+  <!-- Stats — a compact authority bar between Intro and Highlights, real
+       figures only (Google rating/review count from siteConfig, dish count
+       computed from the actual menu data, days open from the real hours). -->
+  {stats.length > 0 && (
+    <section class="relative max-w-5xl mx-auto px-5 sm:px-8 pb-16 sm:pb-20">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 rounded-3xl py-10 px-6 sm:px-10" style="background-color: var(--color-surface-muted); border: 1px solid var(--color-border)" data-reveal>
+        {stats.map((stat) => (
+          <div class="stat-tile">
+            <div class="stat-number" data-counter data-target={stat.value} data-decimals={stat.decimals} data-suffix={stat.suffix}>0</div>
+            <div class="stat-label">{t(stat.label, lang)}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
 
   <Ornament />
 
@@ -168,17 +237,21 @@ const path = localizedPath('/', lang);
   <div class="section-tint">
     <section class="max-w-7xl mx-auto px-5 sm:px-8 py-14 sm:py-20">
       <div class="mb-10" data-reveal>
-        <span class="block text-[10px] font-bold uppercase tracking-[0.25em] mb-2" style="color: var(--color-primary)">{t(copy.highlightsKicker, lang)}</span>
+        <span class="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] mb-2" style="color: var(--color-primary)">
+          <FlagAccent />
+          {t(copy.highlightsKicker, lang)}
+        </span>
         <h2 class="font-display text-3xl sm:text-4xl font-semibold" style="color: var(--color-text-primary)">{t(copy.highlightsTitle, lang)}</h2>
       </div>
       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {highlights.map(({ category, item }, i) => (
           <div
-            class="card-lift rounded-2xl p-6"
+            class="card-lift card-glow rounded-2xl p-6"
             style={`background-color: var(--color-surface-muted); border: 1px solid var(--color-border); transition-delay: ${(i % 3) * 80}ms`}
             data-reveal
           >
-            <span class="text-[10px] font-bold uppercase tracking-[0.2em]" style="color: var(--color-accent)">{t(category.label, lang)}</span>
+            <span class="category-icon" set:html={`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${categoryIcons[category.id] ?? ''}</svg>`} />
+            <span class="block text-[10px] font-bold uppercase tracking-[0.2em]" style="color: var(--color-accent)">{t(category.label, lang)}</span>
             <div class="mt-2 flex items-baseline justify-between gap-3">
               <h3 class="menu-item-name font-display text-lg font-semibold" style="color: var(--color-text-primary)">{item.name}</h3>
               <span class="menu-item-price text-sm font-bold shrink-0" style="color: var(--color-primary)">
@@ -200,7 +273,7 @@ const path = localizedPath('/', lang);
   <!-- CTA -->
   <section class="relative overflow-hidden">
     <div class="section-glow" style="width: 420px; height: 420px; background: var(--color-primary); opacity: 0.08; left: 50%; top: -140px; transform: translateX(-50%);"></div>
-    <div class="relative max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-24 text-center" data-reveal>
+    <div class="relative max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-24 text-center" data-reveal="scale">
       <h2 class="font-display text-3xl sm:text-4xl font-semibold mb-3" style="color: var(--color-text-primary)">{t(copy.ctaTitle, lang)}</h2>
       <p class="text-sm sm:text-base mb-8 max-w-lg mx-auto" style="color: var(--color-text-muted)">{t(copy.ctaBody, lang)}</p>
       <div class="flex flex-wrap justify-center gap-3 mb-6">
@@ -210,4 +283,132 @@ const path = localizedPath('/', lang);
       <OpenStatusBadge lang={lang} />
     </div>
   </section>
+
+  <!-- Lightbox — shared modal for the dish gallery above. -->
+  <div id="lightbox" class="lightbox" hidden>
+    <button type="button" id="lightbox-close" class="lightbox-close" aria-label="Fermer">✕</button>
+    <button type="button" id="lightbox-prev" class="lightbox-nav lightbox-prev" aria-label="Précédent">‹</button>
+    <img id="lightbox-img" src="" alt="" />
+    <p id="lightbox-caption" class="lightbox-caption"></p>
+    <button type="button" id="lightbox-next" class="lightbox-nav lightbox-next" aria-label="Suivant">›</button>
+  </div>
 </Layout>
+
+<script>
+  // Homepage-only enhancements: hero parallax, the dish gallery lightbox,
+  // the counting stat tiles, and the pointer-follow glow on signature cards.
+  // Scoped here (not Layout.astro) since these elements only exist on /.
+  document.addEventListener('astro:page-load', () => {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // --- Hero parallax --------------------------------------------------
+    const parallaxEl = document.querySelector<HTMLElement>('[data-parallax]');
+    if (parallaxEl && !reduceMotion) {
+      const factor = parseFloat(parallaxEl.getAttribute('data-parallax') || '0.12');
+      let ticking = false;
+      const updateParallax = () => {
+        const rect = parallaxEl.getBoundingClientRect();
+        if (rect.bottom > 0 && rect.top < window.innerHeight) {
+          parallaxEl.style.transform = `translate3d(0, ${window.scrollY * factor}px, 0)`;
+        }
+        ticking = false;
+      };
+      window.addEventListener(
+        'scroll',
+        () => {
+          if (!ticking) {
+            window.requestAnimationFrame(updateParallax);
+            ticking = true;
+          }
+        },
+        { passive: true }
+      );
+      updateParallax();
+    }
+
+    // --- Gallery lightbox -------------------------------------------------
+    const items = Array.from(document.querySelectorAll<HTMLElement>('.gallery-item'));
+    const lightbox = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightbox-img') as HTMLImageElement | null;
+    const lbCaption = document.getElementById('lightbox-caption');
+    const closeBtn = document.getElementById('lightbox-close');
+    const prevBtn = document.getElementById('lightbox-prev');
+    const nextBtn = document.getElementById('lightbox-next');
+    let currentIndex = 0;
+
+    function openAt(index: number) {
+      if (!items.length) return;
+      currentIndex = ((index % items.length) + items.length) % items.length;
+      const el = items[currentIndex];
+      const src = el.dataset.lightboxSrc || '';
+      const caption = el.dataset.lightboxCaption || '';
+      if (lbImg) {
+        lbImg.src = src;
+        lbImg.alt = caption;
+      }
+      if (lbCaption) lbCaption.textContent = caption;
+      lightbox?.removeAttribute('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+      lightbox?.setAttribute('hidden', '');
+      document.body.style.overflow = '';
+    }
+    items.forEach((el, i) => el.addEventListener('click', () => openAt(i)));
+    closeBtn?.addEventListener('click', closeLightbox);
+    prevBtn?.addEventListener('click', () => openAt(currentIndex - 1));
+    nextBtn?.addEventListener('click', () => openAt(currentIndex + 1));
+    lightbox?.addEventListener('click', (e) => {
+      if (e.target === lightbox) closeLightbox();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (!lightbox || lightbox.hasAttribute('hidden')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowRight') openAt(currentIndex + 1);
+      if (e.key === 'ArrowLeft') openAt(currentIndex - 1);
+    });
+
+    // --- Counting stat tiles ---------------------------------------------
+    const counters = document.querySelectorAll<HTMLElement>('[data-counter]');
+    if (counters.length) {
+      const counterObserver = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const el = entry.target as HTMLElement;
+            counterObserver.unobserve(el);
+            const target = parseFloat(el.dataset.target || '0');
+            const decimals = parseInt(el.dataset.decimals || '0', 10);
+            const suffix = el.dataset.suffix || '';
+            if (reduceMotion || !isFinite(target)) {
+              el.textContent = `${target.toFixed(decimals)}${suffix}`;
+              continue;
+            }
+            const duration = 1400;
+            const start = performance.now();
+            const step = (now: number) => {
+              const progress = Math.min(1, (now - start) / duration);
+              const eased = 1 - Math.pow(1 - progress, 3);
+              el.textContent = `${(target * eased).toFixed(decimals)}${suffix}`;
+              if (progress < 1) window.requestAnimationFrame(step);
+            };
+            window.requestAnimationFrame(step);
+          }
+        },
+        { threshold: 0.4 }
+      );
+      counters.forEach((el) => counterObserver.observe(el));
+    }
+
+    // --- Signature-card pointer glow --------------------------------------
+    if (!reduceMotion) {
+      document.querySelectorAll<HTMLElement>('.card-glow').forEach((card) => {
+        card.addEventListener('mousemove', (e: MouseEvent) => {
+          const rect = card.getBoundingClientRect();
+          card.style.setProperty('--glow-x', `${((e.clientX - rect.left) / rect.width) * 100}%`);
+          card.style.setProperty('--glow-y', `${((e.clientY - rect.top) / rect.height) * 100}%`);
+        });
+      });
+    }
+  });
+</script>
