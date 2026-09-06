@@ -38,6 +38,8 @@ export const common = {
   voirSurGoogle: { fr: 'Voir sur Google', en: 'View on Google', ar: 'شاهد على Google' } satisfies LocalizedText,
   ouvertMaintenant: { fr: 'Ouvert maintenant', en: 'Open now', ar: 'مفتوح الآن' } satisfies LocalizedText,
   fermeMaintenant: { fr: 'Fermé maintenant', en: 'Closed now', ar: 'مغلق الآن' } satisfies LocalizedText,
+  fermeA: { fr: 'Ferme à', en: 'Closes at', ar: 'يغلق عند' } satisfies LocalizedText,
+  ouvreA: { fr: 'Ouvre à', en: 'Opens at', ar: 'يفتح عند' } satisfies LocalizedText,
   prixSurDemande: { fr: 'Prix sur demande', en: 'Price on request', ar: 'السعر عند الطلب' } satisfies LocalizedText,
 };
 
