@@ -7,10 +7,14 @@
 // Mobile language switcher is a compact dropdown (button + chevron) grouped
 // with the hamburger toggle so both sit adjacent on the right edge; the
 // 3-way pill row is kept for sm+ screens where there's room for it.
+// Below lg, the full nav is hidden, which left a bare gap next to the logo —
+// filled with a small live "Ouvert / Fermé" status chip (see
+// OpenStatusBadge's compact prop) instead of leaving it empty.
 import { siteConfig } from '../config/site.config';
 import { getReserveCtaLabel } from '../lib/nav';
 import { LANGUAGES, LANGUAGE_LABEL, LANGUAGE_NATIVE_NAME, localizedPath, arrow, t, type Language } from '../i18n/languages';
 import { nav as navUi } from '../i18n/ui';
+import OpenStatusBadge from './OpenStatusBadge.astro';
 
 interface Props {
   lang?: Language;
@@ -38,6 +42,12 @@ const langLinks = LANGUAGES.map((l) => ({ lang: l, href: localizedPath(currentPa
     <a href={localizedPath('/', lang)} class="flex items-center gap-2 min-w-0 shrink">
       <img src="/brand/logo-pino.png" alt={siteConfig.identity.name} class="site-logo-img w-auto" />
     </a>
+
+    {!minimal && (
+      <div class="header-status flex lg:hidden items-center pl-3 ml-0.5 shrink-0" style="border-left: 1px solid var(--color-border)">
+        <OpenStatusBadge lang={lang} compact />
+      </div>
+    )}
 
     {!minimal && (
       <nav class="hidden lg:flex items-center gap-5 shrink-0">

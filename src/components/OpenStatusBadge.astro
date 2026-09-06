@@ -8,16 +8,23 @@ import { common } from '../i18n/ui';
 
 interface Props {
   lang?: Language;
+  // Short "Ouvert" / "Fermé" instead of "Ouvert maintenant" — used in the
+  // header where space next to the logo is tight.
+  compact?: boolean;
 }
-const { lang = 'fr' } = Astro.props;
+const { lang = 'fr', compact = false } = Astro.props;
 const { open, close } = siteConfig.contact.hours;
+const shortLabel = { fr: ['Ouvert', 'Fermé'], en: ['Open', 'Closed'], ar: ['مفتوح', 'مغلق'] } as const;
+const [shortOpen, shortClosed] = shortLabel[lang] ?? shortLabel.fr;
+const labelOpen = compact ? shortOpen : t(common.ouvertMaintenant, lang);
+const labelClosed = compact ? shortClosed : t(common.fermeMaintenant, lang);
 ---
 <span
   class="open-status-badge inline-flex items-center gap-1.5"
   data-open-hour={open}
   data-close-hour={close}
-  data-label-open={t(common.ouvertMaintenant, lang)}
-  data-label-closed={t(common.fermeMaintenant, lang)}
+  data-label-open={labelOpen}
+  data-label-closed={labelClosed}
 >
 </span>
 
