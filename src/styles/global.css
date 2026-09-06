@@ -125,6 +125,31 @@ body {
   transform: scale(1);
 }
 
+/* Directional reveal variants — used sparingly so scrolling doesn't repeat
+   the exact same fade-up trick in every section. */
+[data-reveal='left'] {
+  transform: translate(-28px, 0);
+}
+[data-reveal='left'].is-visible {
+  transform: translate(0, 0);
+}
+[data-reveal='right'] {
+  transform: translate(28px, 0);
+}
+[data-reveal='right'].is-visible {
+  transform: translate(0, 0);
+}
+[dir='rtl'] [data-reveal='left'] {
+  transform: translate(28px, 0);
+}
+[dir='rtl'] [data-reveal='right'] {
+  transform: translate(-28px, 0);
+}
+[dir='rtl'] [data-reveal='left'].is-visible,
+[dir='rtl'] [data-reveal='right'].is-visible {
+  transform: translate(0, 0);
+}
+
 .stat-huge {
   font-family: var(--font-display);
   font-weight: 600;
@@ -234,4 +259,201 @@ button:focus-visible,
   outline: 2px solid var(--color-primary);
   outline-offset: 3px;
   border-radius: 4px;
+}
+
+/* ============================================================================
+   Hero motion — slow drifting gold particles over the storefront photo.
+   Pure CSS (fixed, hand-placed positions — no per-view randomness that
+   could cause layout shift), no library. Parallax on the photo itself is
+   handled in a small scroll script alongside the existing Ken Burns zoom.
+   ============================================================================ */
+.hero-particle {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-primary) 90%, white) 0%, transparent 72%);
+  filter: blur(0.5px);
+  opacity: 0.4;
+  animation-name: driftParticle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+@keyframes driftParticle {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+  50% { transform: translate(16px, -24px) scale(1.2); opacity: 0.75; }
+  100% { transform: translate(-12px, 10px) scale(0.9); opacity: 0.3; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-particle { animation: none; opacity: 0.35; }
+}
+
+/* ============================================================================
+   Signature-card hover glow — a soft gold glow that follows the pointer and
+   fades in from the edge, layered on top of the existing .card-lift.
+   ============================================================================ */
+.card-glow {
+  position: relative;
+  overflow: hidden;
+}
+.card-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(220px 160px at var(--glow-x, 50%) var(--glow-y, 0%), color-mix(in srgb, var(--color-primary) 40%, transparent), transparent 72%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.card-glow:hover::before,
+.card-glow:focus-within::before {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-glow::before { transition: none; }
+}
+
+.category-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background-color: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  margin-bottom: 0.75rem;
+}
+
+/* ============================================================================
+   Stat bar — counting numbers, triggered once the tile scrolls into view
+   (see the script in HomeContent.astro).
+   ============================================================================ */
+.stat-tile {
+  text-align: center;
+}
+.stat-number {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  color: var(--color-primary);
+}
+.stat-label {
+  margin-top: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+/* ============================================================================
+   Gallery lightbox — click a dish photo to view it larger. Plain CSS/JS,
+   no external library.
+   ============================================================================ */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+@media (min-width: 640px) {
+  .gallery-grid { gap: 1.25rem; }
+}
+@media (min-width: 1024px) {
+  .gallery-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 380px) {
+  .gallery-grid { grid-template-columns: 1fr; }
+}
+.gallery-item {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: zoom-in;
+}
+[dir='rtl'] .gallery-item {
+  text-align: right;
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(11, 11, 12, 0.92);
+  backdrop-filter: blur(6px);
+  padding: 2rem 1.25rem;
+}
+.lightbox[hidden] {
+  display: none;
+}
+.lightbox img {
+  max-width: min(92vw, 900px);
+  max-height: 74vh;
+  border-radius: 14px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+.lightbox-caption {
+  margin-top: 1rem;
+  color: var(--color-text-primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+}
+.lightbox-close,
+.lightbox-nav {
+  position: absolute;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.lightbox-close:hover,
+.lightbox-nav:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.lightbox-close {
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 44px;
+  height: 44px;
+  font-size: 1.1rem;
+}
+.lightbox-nav {
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  font-size: 1.5rem;
+}
+.lightbox-prev {
+  left: 1rem;
+}
+.lightbox-next {
+  right: 1rem;
+}
+@media (max-width: 640px) {
+  .lightbox-nav { width: 40px; height: 40px; font-size: 1.2rem; }
+  .lightbox-close { width: 38px; height: 38px; top: 0.75rem; right: 0.75rem; }
+}
+
+/* ============================================================================
+   Footer divider illustration — a thin gold cutlery-line flourish between
+   the footer's main grid and its bottom bar.
+   ============================================================================ */
+.footer-divider {
+  display: block;
+  margin: 0 auto;
+  opacity: 0.5;
 }
