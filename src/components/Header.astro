@@ -1,9 +1,12 @@
 ---
 // Real Chez Pino logo (yellow mark on transparent background,
-// public/brand/logo-pino.png). Bigger header/logo per client feedback.
-// Mobile language switcher is a compact dropdown (button + chevron) next
-// to the hamburger toggle, instead of 3 pills side by side — the pill row
-// is kept for sm+ screens where there's room for it.
+// public/brand/logo-pino.png). Header is deliberately compact — height and
+// logo size are driven by CSS (not Tailwind h-* utilities) so the whole bar
+// can shrink smoothly once the page scrolls (see #site-header[data-scrolled]
+// below), instead of staying the same tall size forever.
+// Mobile language switcher is a compact dropdown (button + chevron) grouped
+// with the hamburger toggle so both sit adjacent on the right edge; the
+// 3-way pill row is kept for sm+ screens where there's room for it.
 import { siteConfig } from '../config/site.config';
 import { getReserveCtaLabel } from '../lib/nav';
 import { LANGUAGES, LANGUAGE_LABEL, LANGUAGE_NATIVE_NAME, localizedPath, arrow, t, type Language } from '../i18n/languages';
@@ -31,13 +34,13 @@ const currentPath = Astro.url.pathname;
 const langLinks = LANGUAGES.map((l) => ({ lang: l, href: localizedPath(currentPath, l) }));
 ---
 <header id="site-header" class="sticky top-0 z-40 transition-all duration-300" data-scrolled="false">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 sm:h-28 flex items-center justify-between gap-3 sm:gap-4">
+  <div class="site-header-inner max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-4">
     <a href={localizedPath('/', lang)} class="flex items-center gap-2 min-w-0 shrink">
-      <img src="/brand/logo-pino.png" alt={siteConfig.identity.name} class="h-16 sm:h-24 w-auto" />
+      <img src="/brand/logo-pino.png" alt={siteConfig.identity.name} class="site-logo-img w-auto" />
     </a>
 
     {!minimal && (
-      <nav class="hidden lg:flex items-center gap-6 shrink-0">
+      <nav class="hidden lg:flex items-center gap-5 shrink-0">
         {nav.map((item) => (
           <a
             href={item.href}
@@ -68,8 +71,8 @@ const langLinks = LANGUAGES.map((l) => ({ lang: l, href: localizedPath(currentPa
     {!minimal && (
       <a
         href={reserveCta.href}
-        class="hidden sm:inline-flex items-center gap-1.5 text-sm font-bold shrink-0"
-        style="color: var(--color-primary)"
+        class="hidden sm:inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full shrink-0 transition-transform duration-200 hover:scale-[1.04]"
+        style="background-color: var(--color-primary); color: var(--color-background)"
       >
         {reserveCta.label} {arrow(lang)}
       </a>
@@ -169,6 +172,32 @@ const langLinks = LANGUAGES.map((l) => ({ lang: l, href: localizedPath(currentPa
   }
   #lang-dropdown-chevron.open {
     transform: rotate(180deg);
+  }
+
+  /* Compact by default, shrinks further once scrolled — height and logo
+     size are plain CSS (not Tailwind h-* utilities) precisely so this
+     smooth transition can happen without fighting utility-class specificity. */
+  .site-header-inner {
+    height: 72px;
+    transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .site-logo-img {
+    height: 42px;
+    transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @media (min-width: 640px) {
+    .site-header-inner { height: 88px; }
+    .site-logo-img { height: 54px; }
+  }
+  #site-header[data-scrolled='true'] .site-header-inner {
+    height: 58px;
+  }
+  #site-header[data-scrolled='true'] .site-logo-img {
+    height: 32px;
+  }
+  @media (min-width: 640px) {
+    #site-header[data-scrolled='true'] .site-header-inner { height: 68px; }
+    #site-header[data-scrolled='true'] .site-logo-img { height: 40px; }
   }
 </style>
 

@@ -1,0 +1,28 @@
+---
+// Subtle Italian-flag accent used next to section kickers across the
+// homepage — three thin colour bars, not a literal flag graphic. Keeps the
+// "Italian trattoria" note present without breaking the black/gold identity.
+interface Props {
+  class?: string;
+}
+const { class: className = '' } = Astro.props;
+---
+<span class:list={['flag-accent', className]} aria-hidden="true">
+  <span class="flag-accent-bar" style="background-color: #008C45"></span>
+  <span class="flag-accent-bar" style="background-color: #F4F5F0"></span>
+  <span class="flag-accent-bar" style="background-color: #CD212A"></span>
+</span>
+
+<style>
+  .flag-accent {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 2px;
+  }
+  .flag-accent-bar {
+    display: block;
+    width: 3px;
+    height: 11px;
+    border-radius: 1px;
+  }
+</style>
