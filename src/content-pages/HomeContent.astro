@@ -130,6 +130,11 @@ const path = localizedPath('/', lang);
   <section class="relative min-h-[560px] sm:h-[86vh] flex items-end overflow-hidden">
     <div class="ken-burns absolute inset-0" data-parallax="0.12">
       <picture>
+        <!-- Below 640px: a dedicated portrait shot of the storefront
+             (taller crop, same neon sign) instead of a cropped-down
+             landscape photo — looks intentional on a phone screen. -->
+        <source media="(max-width: 639px)" srcset="/brand/storefront-hero-mobile.webp" type="image/webp" />
+        <source media="(max-width: 639px)" srcset="/brand/storefront-hero-mobile.jpg" type="image/jpeg" />
         <source srcset="/brand/storefront-hero.webp" type="image/webp" />
         <img
           src="/brand/storefront-hero.jpg"
