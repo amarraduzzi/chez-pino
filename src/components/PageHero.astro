@@ -14,7 +14,18 @@ const { kicker, title, subtitle, image, alt = '' } = Astro.props;
 ---
 <section class="relative h-[42vh] min-h-[320px] sm:h-[48vh] sm:min-h-[380px] flex items-end overflow-hidden">
   {image ? (
-    <img src={image} alt={alt} class="absolute inset-0 w-full h-full object-cover" />
+    <picture>
+      <source srcset={image.replace(/\.(png|jpe?g)$/i, '.webp')} type="image/webp" />
+      <img
+        src={image}
+        alt={alt}
+        class="absolute inset-0 w-full h-full object-cover"
+        width="1719"
+        height="915"
+        loading="lazy"
+        decoding="async"
+      />
+    </picture>
   ) : (
     <div class="photo-placeholder absolute inset-0"></div>
   )}

@@ -40,7 +40,14 @@ const langLinks = LANGUAGES.map((l) => ({ lang: l, href: localizedPath(currentPa
 <header id="site-header" class="sticky top-0 z-40 transition-all duration-300" data-scrolled="false">
   <div class="site-header-inner max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-4">
     <a href={localizedPath('/', lang)} class="flex items-center gap-2 min-w-0 shrink">
-      <img src="/brand/logo-pino.png" alt={siteConfig.identity.name} class="site-logo-img w-auto" />
+      <img
+        src="/brand/logo-pino.png"
+        alt={siteConfig.identity.name}
+        class="site-logo-img w-auto"
+        width="360"
+        height="360"
+        decoding="async"
+      />
     </a>
 
     {!minimal && (
